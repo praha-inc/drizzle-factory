@@ -122,29 +122,21 @@ export const defineFactory = <
 export type ComposedDrizzleFactory<
   Schema extends Record<string, Table>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Resolvers extends { [Key in keyof Resolvers]: DrizzleFactory<Schema, keyof Schema, any> },
+  Factories extends { [Key in keyof Factories]: DrizzleFactory<Schema, keyof Schema, any> },
 > = (database: Database<Schema>) => {
-  [Key in keyof Resolvers]: ReturnType<Resolvers[Key]>;
+  [Key in keyof Factories]: ReturnType<Factories[Key]>;
 };
 
 export const composeFactory = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Resolvers extends { [Key in keyof Resolvers]: DrizzleFactory<any, Key, any> },
-  Schema extends {
-    [Key in keyof Resolvers]: Parameters<Resolvers[Key]>[0] extends Database<infer S>
-      ? S extends Record<Key, Table>
-        ? S[Key]
-        : never
-      : never;
-  },
->(
-  resolvers: Resolvers,
-): ComposedDrizzleFactory<Schema, Resolvers> => {
+  Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any> },
+  Schema extends Parameters<Factories[keyof Factories]>[0] extends Database<infer S> ? S : never,
+>(factories: Factories): ComposedDrizzleFactory<Schema, Factories> => {
   return (database) => {
     const result: Record<string, unknown> = {};
-    for (const key in resolvers) {
-      result[key] = resolvers[key](database);
+    for (const key in factories) {
+      result[key] = factories[key](database);
     }
-    return result as ReturnType<ComposedDrizzleFactory<Schema, Resolvers>>;
+    return result as ReturnType<ComposedDrizzleFactory<Schema, Factories>>;
   };
 };
