@@ -59,14 +59,14 @@
     "@praha/eslint-config-typescript": "3.0.3",
     "@rslib/core": "0.5.5",
     "@tsconfig/strictest": "2.0.5",
-    "drizzle-orm": "0.40.1",
+    "drizzle-orm": "0.41.0",
     "eslint": "9.22.0",
     "pkg-pr-new": "0.0.41",
     "typescript": "5.7.3",
     "vitest": "3.0.9"
   },
   "peerDependencies": {
-    "drizzle-orm": "^0.40.0"
+    "drizzle-orm": "^0.40.0 || ^0.41.0"
   },
   "packageManager": "pnpm@10.6.5",
   "publishConfig": {
