@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.0.2
+
+### Patch Changes
+
+- [#24](https://github.com/praha-inc/drizzle-factory/pull/24) [`8dc9fd0`](https://github.com/praha-inc/drizzle-factory/commit/8dc9fd0b66e877e5fa7097b41849d93e8a9dc0e9) Thanks [@kmymso](https://github.com/kmymso)! - Allow any 0.x version of drizzle-orm in peerDependencies
+
 ## 1.0.1
 
 ### Patch Changes
