@@ -30,8 +30,8 @@ importers:
         specifier: 3.0.4
         version: 3.0.4(@praha/eslint-config-common@4.0.1(eslint@9.25.1(jiti@2.4.2)))(@praha/eslint-config-javascript@3.0.3(@praha/eslint-config-common@4.0.1(eslint@9.25.1(jiti@2.4.2)))(@typescript-eslint/eslint-plugin@8.25.0(@typescript-eslint/parser@8.25.0(eslint@9.25.1(jiti@2.4.2))(typescript@5.7.3))(eslint@9.25.1(jiti@2.4.2))(typescript@5.7.3))(eslint@9.25.1(jiti@2.4.2))(typescript@5.7.3))(eslint@9.25.1(jiti@2.4.2))(typescript@5.7.3)
       '@rslib/core':
-        specifier: 0.6.5
-        version: 0.6.5(typescript@5.7.3)
+        specifier: 0.6.6
+        version: 0.6.6(typescript@5.7.3)
       '@tsconfig/strictest':
         specifier: 2.0.5
         version: 2.0.5
@@ -654,13 +654,13 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rsbuild/core@1.3.8':
-    resolution: {integrity: sha512-J3WfY7XH5RRswfXFFUYizhrsEe/ueufALBSYfNyXpDnzTWgO/NGcjtB7iRgOsXs5z1WLRBMukiFUdDFf0iTcMQ==}
+  '@rsbuild/core@1.3.9':
+    resolution: {integrity: sha512-HnMv2sJA2EZuFhmNg9qULA/O7c2v8niWbp2Khm68SrGToFgYLgfw5qHDBU5tXn/2XljUQ/EEaLQmbZ6Vxwlm9Q==}
     engines: {node: '>=16.10.0'}
     hasBin: true
 
-  '@rslib/core@0.6.5':
-    resolution: {integrity: sha512-hsNgKlm/a7wxVXC+POMNP9bwCbCtO0ujKJXdi6oBNiDMmiAfgZs2Zz5+bHfirZiPCsX7IcNG+BgY7IpyTYHegA==}
+  '@rslib/core@0.6.6':
+    resolution: {integrity: sha512-3FtgbYqlFsPgRV8TwW7GjYRJH273fOPw9utcfQqcZIVTuQAhmhr7ZWplpFJWbze2MNP9W234CpbNdRUxfNe3ew==}
     engines: {node: '>=16.7.0'}
     hasBin: true
     peerDependencies:
@@ -1872,8 +1872,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  rsbuild-plugin-dts@0.6.5:
-    resolution: {integrity: sha512-MykzmOKhtjHxjLUVEUQVYeK+kJyBFvQ0DHOluzR+gvHyF50ysSbkScRdtWp85Tz0cdkt+ckHZPpKqfCuznH24Q==}
+  rsbuild-plugin-dts@0.6.6:
+    resolution: {integrity: sha512-cN0deqsNMG8Dwmw0MHeFLZWyBuqlT8PhcmUH9qkahMxPRnJCBusnEdVfmRBlXaz+Z24MYX/Z15nCgyydlHInlA==}
     engines: {node: '>=16.7.0'}
     peerDependencies:
       '@microsoft/api-extractor': ^7
@@ -2837,7 +2837,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.34.9':
     optional: true
 
-  '@rsbuild/core@1.3.8':
+  '@rsbuild/core@1.3.9':
     dependencies:
       '@rspack/core': 1.3.5(@swc/helpers@0.5.17)
       '@rspack/lite-tapable': 1.0.1
@@ -2847,11 +2847,11 @@ snapshots:
     transitivePeerDependencies:
       - '@rspack/tracing'
 
-  '@rslib/core@0.6.5(typescript@5.7.3)':
+  '@rslib/core@0.6.6(typescript@5.7.3)':
     dependencies:
-      '@rsbuild/core': 1.3.8
-      rsbuild-plugin-dts: 0.6.5(@rsbuild/core@1.3.8)(typescript@5.7.3)
-      tinyglobby: 0.2.12
+      '@rsbuild/core': 1.3.9
+      rsbuild-plugin-dts: 0.6.6(@rsbuild/core@1.3.9)(typescript@5.7.3)
+      tinyglobby: 0.2.13
     optionalDependencies:
       typescript: 5.7.3
     transitivePeerDependencies:
@@ -3355,7 +3355,7 @@ snapshots:
       get-tsconfig: 4.10.0
       is-bun-module: 2.0.0
       stable-hash: 0.0.5
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
       unrs-resolver: 1.5.0
     optionalDependencies:
       eslint-plugin-import-x: 4.10.5(eslint@9.25.1(jiti@2.4.2))(typescript@5.7.3)
@@ -3985,13 +3985,13 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.34.9
       fsevents: 2.3.3
 
-  rsbuild-plugin-dts@0.6.5(@rsbuild/core@1.3.8)(typescript@5.7.3):
+  rsbuild-plugin-dts@0.6.6(@rsbuild/core@1.3.9)(typescript@5.7.3):
     dependencies:
       '@ast-grep/napi': 0.37.0
-      '@rsbuild/core': 1.3.8
+      '@rsbuild/core': 1.3.9
       magic-string: 0.30.17
       picocolors: 1.1.1
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
       tsconfig-paths: 4.2.0
     optionalDependencies:
       typescript: 5.7.3
