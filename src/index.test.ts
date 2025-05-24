@@ -12,11 +12,13 @@ describe('defineFactory', () => {
     users: pgTable('users', {
       id: integer().notNull(),
       name: text().notNull(),
+      duplicatedColumn: text().notNull(),
     }),
     posts: pgTable('posts', {
       id: integer().notNull(),
       userId: integer().notNull(),
       title: text().notNull(),
+      duplicatedColumn: integer().notNull(),
     }),
   } satisfies Record<string, Table>;
 
@@ -40,6 +42,7 @@ describe('defineFactory', () => {
         return {
           id: sequence,
           name: `name-${sequence}`,
+          duplicatedColumn: `duplicatedColumn-${sequence}`,
         };
       },
       traits: {
@@ -47,6 +50,7 @@ describe('defineFactory', () => {
           return {
             id: sequence,
             name: `admin-${sequence}`,
+            duplicatedColumn: `duplicatedColumn-${sequence}`,
           };
         },
       },
@@ -60,6 +64,7 @@ describe('defineFactory', () => {
           id: sequence,
           userId: () => use(usersFactory).create().then((user) => user.id),
           title: `title-${sequence}`,
+          duplicatedColumn: sequence,
         };
       },
       traits: {
@@ -68,6 +73,7 @@ describe('defineFactory', () => {
             id: sequence,
             userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
             title: `admin-title-${sequence}`,
+            duplicatedColumn: sequence,
           };
         },
       },
@@ -83,6 +89,7 @@ describe('defineFactory', () => {
           expect(user).toEqual({
             id: 1,
             name: 'name-1',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
         });
 
@@ -93,6 +100,7 @@ describe('defineFactory', () => {
           expect(values).toHaveBeenCalledWith({
             id: 1,
             name: 'name-1',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
         });
       });
@@ -104,6 +112,7 @@ describe('defineFactory', () => {
           expect(user).toEqual({
             id: 1,
             name: 'test',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
         });
 
@@ -114,6 +123,7 @@ describe('defineFactory', () => {
           expect(values).toHaveBeenCalledWith({
             id: 1,
             name: 'test',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
         });
       });
@@ -126,6 +136,7 @@ describe('defineFactory', () => {
             expect(user).toEqual({
               id: 1,
               name: 'admin-1',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
           });
 
@@ -136,6 +147,7 @@ describe('defineFactory', () => {
             expect(values).toHaveBeenCalledWith({
               id: 1,
               name: 'admin-1',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
           });
         });
@@ -147,6 +159,7 @@ describe('defineFactory', () => {
             expect(user).toEqual({
               id: 1,
               name: 'test',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
           });
 
@@ -157,6 +170,7 @@ describe('defineFactory', () => {
             expect(values).toHaveBeenCalledWith({
               id: 1,
               name: 'test',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
           });
         });
@@ -172,10 +186,12 @@ describe('defineFactory', () => {
             {
               id: 1,
               name: 'name-1',
+              duplicatedColumn: 'duplicatedColumn-1',
             },
             {
               id: 2,
               name: 'name-2',
+              duplicatedColumn: 'duplicatedColumn-2',
             },
           ]);
         });
@@ -187,10 +203,12 @@ describe('defineFactory', () => {
           expect(values).toHaveBeenNthCalledWith(1, {
             id: 1,
             name: 'name-1',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
           expect(values).toHaveBeenNthCalledWith(2, {
             id: 2,
             name: 'name-2',
+            duplicatedColumn: 'duplicatedColumn-2',
           });
         });
       });
@@ -203,10 +221,12 @@ describe('defineFactory', () => {
             {
               id: 1,
               name: 'test',
+              duplicatedColumn: 'duplicatedColumn-1',
             },
             {
               id: 2,
               name: 'test2',
+              duplicatedColumn: 'duplicatedColumn-2',
             },
           ]);
         });
@@ -218,10 +238,12 @@ describe('defineFactory', () => {
           expect(values).toHaveBeenNthCalledWith(1, {
             id: 1,
             name: 'test',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
           expect(values).toHaveBeenNthCalledWith(2, {
             id: 2,
             name: 'test2',
+            duplicatedColumn: 'duplicatedColumn-2',
           });
         });
       });
@@ -235,10 +257,12 @@ describe('defineFactory', () => {
               {
                 id: 1,
                 name: 'admin-1',
+                duplicatedColumn: 'duplicatedColumn-1',
               },
               {
                 id: 2,
                 name: 'admin-2',
+                duplicatedColumn: 'duplicatedColumn-2',
               },
             ]);
           });
@@ -250,10 +274,12 @@ describe('defineFactory', () => {
             expect(values).toHaveBeenNthCalledWith(1, {
               id: 1,
               name: 'admin-1',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
             expect(values).toHaveBeenNthCalledWith(2, {
               id: 2,
               name: 'admin-2',
+              duplicatedColumn: 'duplicatedColumn-2',
             });
           });
         });
@@ -266,10 +292,12 @@ describe('defineFactory', () => {
               {
                 id: 1,
                 name: 'test',
+                duplicatedColumn: 'duplicatedColumn-1',
               },
               {
                 id: 2,
                 name: 'test2',
+                duplicatedColumn: 'duplicatedColumn-2',
               },
             ]);
           });
@@ -281,10 +309,12 @@ describe('defineFactory', () => {
             expect(values).toHaveBeenNthCalledWith(1, {
               id: 1,
               name: 'test',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
             expect(values).toHaveBeenNthCalledWith(2, {
               id: 2,
               name: 'test2',
+              duplicatedColumn: 'duplicatedColumn-2',
             });
           });
         });
@@ -302,6 +332,7 @@ describe('defineFactory', () => {
             id: 1,
             userId: 1,
             title: 'title-1',
+            duplicatedColumn: 1,
           });
         });
 
@@ -312,11 +343,13 @@ describe('defineFactory', () => {
           expect(values).toHaveBeenNthCalledWith(1, {
             id: 1,
             name: 'name-1',
+            duplicatedColumn: 'duplicatedColumn-1',
           });
           expect(values).toHaveBeenNthCalledWith(2, {
             id: 1,
             userId: 1,
             title: 'title-1',
+            duplicatedColumn: 1,
           });
         });
       });
@@ -329,6 +362,7 @@ describe('defineFactory', () => {
             id: 1,
             userId: 10,
             title: 'test',
+            duplicatedColumn: 1,
           });
         });
 
@@ -340,6 +374,7 @@ describe('defineFactory', () => {
             id: 1,
             userId: 10,
             title: 'test',
+            duplicatedColumn: 1,
           });
         });
 
@@ -359,6 +394,7 @@ describe('defineFactory', () => {
               id: 1,
               userId: 1,
               title: 'admin-title-1',
+              duplicatedColumn: 1,
             });
           });
 
@@ -369,11 +405,13 @@ describe('defineFactory', () => {
             expect(values).toHaveBeenNthCalledWith(1, {
               id: 1,
               name: 'admin-1',
+              duplicatedColumn: 'duplicatedColumn-1',
             });
             expect(values).toHaveBeenNthCalledWith(2, {
               id: 1,
               userId: 1,
               title: 'admin-title-1',
+              duplicatedColumn: 1,
             });
           });
         });
@@ -386,6 +424,7 @@ describe('defineFactory', () => {
               id: 1,
               userId: 10,
               title: 'test',
+              duplicatedColumn: 1,
             });
           });
 
@@ -397,6 +436,7 @@ describe('defineFactory', () => {
               id: 1,
               userId: 10,
               title: 'test',
+              duplicatedColumn: 1,
             });
           });
 
