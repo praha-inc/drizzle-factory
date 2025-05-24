@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.0.3
+
+### Patch Changes
+
+- [#75](https://github.com/praha-inc/drizzle-factory/pull/75) [`a6b00f9`](https://github.com/praha-inc/drizzle-factory/commit/a6b00f961aa2474596dd8908e6b0c593249e18a6) Thanks [@kmymso](https://github.com/kmymso)! - Fix type error caused by duplicate column name
+
 ## 1.0.2
 
 ### Patch Changes
