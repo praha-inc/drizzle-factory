@@ -62,7 +62,7 @@
     "drizzle-orm": "0.43.1",
     "eslint": "9.27.0",
     "pkg-pr-new": "0.0.50",
-    "typescript": "5.7.3",
+    "typescript": "5.8.3",
     "vitest": "3.1.4"
   },
   "peerDependencies": {
