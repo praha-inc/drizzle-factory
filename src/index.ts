@@ -31,7 +31,7 @@ export type DefineFactoryResolver<
 > = (parameters: {
   sequence: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  use: <Factory extends DrizzleFactory<Schema, keyof Schema, any>>(factory: Factory) => ReturnType<Factory>;
+  use: <Factory extends DrizzleFactory<Schema, any, any>>(factory: Factory) => ReturnType<Factory>;
 }) => { [K in keyof InferInsertModel<Schema[Key]>]: InferInsertModel<Schema[Key]>[K] | (() => Promise<InferInsertModel<Schema[Key]>[K]>) };
 
 export type DefineFactoryOptions<
