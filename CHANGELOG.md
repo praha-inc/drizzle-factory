@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.1.0
+
+### Minor Changes
+
+- [#82](https://github.com/praha-inc/drizzle-factory/pull/82) [`a9113db`](https://github.com/praha-inc/drizzle-factory/commit/a9113db9bf1eff7e590b12c2287a8feb3d28aac5) Thanks [@Karibash](https://github.com/Karibash)! - Make it possible to reset the sequence number
+
 ## 1.0.3
 
 ### Patch Changes
