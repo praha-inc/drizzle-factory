@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { defineFactory, composeFactory } from './index';
 
-import type { DrizzleFactory, ComposedDrizzleFactory } from './index';
 import type { Database } from './types/database';
 import type { Table } from 'drizzle-orm';
 
@@ -29,49 +28,49 @@ describe('defineFactory', () => {
     insert: () => ({ values }),
   };
 
-  let usersFactory: DrizzleFactory<typeof schema, 'users', 'admin'>;
-  let postsFactory: DrizzleFactory<typeof schema, 'posts', 'admin'>;
+  const usersFactory = defineFactory({
+    schema,
+    table: 'users',
+    resolver: ({ sequence }) => {
+      return {
+        id: sequence,
+        name: `name-${sequence}`,
+      };
+    },
+    traits: {
+      admin: ({ sequence }) => {
+        return {
+          id: sequence,
+          name: `admin-${sequence}`,
+        };
+      },
+    },
+  });
+
+  const postsFactory = defineFactory({
+    schema,
+    table: 'posts',
+    resolver: ({ sequence, use }) => {
+      return {
+        id: sequence,
+        userId: () => use(usersFactory).create().then((user) => user.id),
+        title: `title-${sequence}`,
+      };
+    },
+    traits: {
+      admin: ({ sequence, use }) => {
+        return {
+          id: sequence,
+          userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
+          title: `admin-title-${sequence}`,
+        };
+      },
+    },
+  });
 
   beforeEach(() => {
-    usersFactory = defineFactory({
-      schema,
-      table: 'users',
-      resolver: ({ sequence }) => {
-        return {
-          id: sequence,
-          name: `name-${sequence}`,
-        };
-      },
-      traits: {
-        admin: ({ sequence }) => {
-          return {
-            id: sequence,
-            name: `admin-${sequence}`,
-          };
-        },
-      },
-    });
-
-    postsFactory = defineFactory({
-      schema,
-      table: 'posts',
-      resolver: ({ sequence, use }) => {
-        return {
-          id: sequence,
-          userId: () => use(usersFactory).create().then((user) => user.id),
-          title: `title-${sequence}`,
-        };
-      },
-      traits: {
-        admin: ({ sequence, use }) => {
-          return {
-            id: sequence,
-            userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
-            title: `admin-title-${sequence}`,
-          };
-        },
-      },
-    });
+    usersFactory.resetSequence();
+    postsFactory.resetSequence();
   });
 
   describe('when creating a user', () => {
@@ -433,47 +432,45 @@ describe('composeFactory', () => {
     insert: () => ({ values }),
   };
 
-  let usersFactory: DrizzleFactory<typeof schema, 'users', 'admin'>;
-  let postsFactory: DrizzleFactory<typeof schema, 'posts', 'admin'>;
-  let factory: ComposedDrizzleFactory<typeof schema, { users: typeof usersFactory; posts: typeof postsFactory }>;
+  const usersFactory = defineFactory({
+    schema,
+    table: 'users',
+    resolver: ({ sequence }) => ({
+      id: sequence,
+      name: `name-${sequence}`,
+    }),
+    traits: {
+      admin: ({ sequence }) => ({
+        id: sequence,
+        name: `admin-${sequence}`,
+      }),
+    },
+  });
+
+  const postsFactory = defineFactory({
+    schema,
+    table: 'posts',
+    resolver: ({ sequence, use }) => ({
+      id: sequence,
+      userId: () => use(usersFactory).create().then((user) => user.id),
+      title: `title-${sequence}`,
+    }),
+    traits: {
+      admin: ({ sequence, use }) => ({
+        id: sequence,
+        userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
+        title: `admin-title-${sequence}`,
+      }),
+    },
+  });
+
+  const factory = composeFactory({
+    users: usersFactory,
+    posts: postsFactory,
+  });
 
   beforeEach(() => {
-    usersFactory = defineFactory({
-      schema,
-      table: 'users',
-      resolver: ({ sequence }) => ({
-        id: sequence,
-        name: `name-${sequence}`,
-      }),
-      traits: {
-        admin: ({ sequence }) => ({
-          id: sequence,
-          name: `admin-${sequence}`,
-        }),
-      },
-    });
-
-    postsFactory = defineFactory({
-      schema,
-      table: 'posts',
-      resolver: ({ sequence, use }) => ({
-        id: sequence,
-        userId: () => use(usersFactory).create().then((user) => user.id),
-        title: `title-${sequence}`,
-      }),
-      traits: {
-        admin: ({ sequence, use }) => ({
-          id: sequence,
-          userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
-          title: `admin-title-${sequence}`,
-        }),
-      },
-    });
-
-    factory = composeFactory({
-      users: usersFactory,
-      posts: postsFactory,
-    });
+    factory.resetSequence();
   });
 
   describe('when creating a user through the composed factory', () => {

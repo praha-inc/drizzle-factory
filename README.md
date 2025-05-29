@@ -190,6 +190,74 @@ console.log(post);
  */
 ```
 
+#### Resetting Sequences
+
+Each factory keeps an internal `sequence` number that auto-increments with every new record. If you want to reset this sequence (e.g., between test cases), you can call the `resetSequence` method.
+
+- Resetting an individual factory’s sequence:
+
+```ts
+const users = await usersFactory(database).create(2);
+console.log(users);
+/*
+[
+  { id: 1, name: 'name-1' },
+  { id: 2, name: 'name-2' },
+]
+ */
+
+usersFactory.resetSequence();
+const user = await usersFactory(database).create();
+console.log(user);
+/*
+{
+  id: 1,
+  name: 'name-1',
+}
+ */
+```
+
+- Resetting sequences on a composed factory:
+
+If you're using composeFactory, you can reset the sequence for all included factories by calling resetSequence() on the composed factory.
+
+```ts
+const factory = composeFactory({
+  users: usersFactory,
+  posts: postsFactory,
+});
+
+const users = await factory(database).users.create(2);
+const posts = await factory(database).posts.create([{ userId: users[0].id }, { userId: users[1].id }]);
+console.log(users, posts);
+/*
+[
+  { id: 1, name: 'name-1' },
+  { id: 2, name: 'name-2' },
+]
+[
+  { id: 1, userId: 1, title: 'title-1' },
+  { id: 2, userId: 2, title: 'title-2' },
+]
+ */
+
+factory.resetSequence();
+const user = await factory(database).users.create();
+const post = await factory(database).posts.create({ userId: user.id });
+console.log(user, post);
+/*
+{
+  id: 1,
+  name: 'name-1',
+}
+{
+  id: 1,
+  userId: 1,
+  title: 'title-1',
+}
+ */
+```
+
 ## 🤝 Contributing
 
 Contributions, issues and feature requests are welcome.

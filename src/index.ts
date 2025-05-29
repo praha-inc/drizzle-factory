@@ -18,11 +18,14 @@ export type DrizzleFactory<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
   Traits extends string,
-> = (database: Database<Schema>) => {
-  create: DrizzleFactoryCreateFunction<Schema[Key]>;
-  traits: Record<Traits, {
+> = {
+  (database: Database<Schema>): {
     create: DrizzleFactoryCreateFunction<Schema[Key]>;
-  }>;
+    traits: Record<Traits, {
+      create: DrizzleFactoryCreateFunction<Schema[Key]>;
+    }>;
+  };
+  resetSequence: () => void;
 };
 
 export type DefineFactoryResolver<
@@ -51,7 +54,7 @@ export const defineFactory = <
   Traits extends string,
 >({ schema, table, resolver, traits }: DefineFactoryOptions<Schema, Key, Traits>): DrizzleFactory<Schema, Key, Traits> => {
   const sequencer = createSequencer();
-  return (database) => {
+  const factory: DrizzleFactory<Schema, Key, Traits> = (database) => {
     const insert = async (
       resolver: DefineFactoryResolver<Schema, Key>,
       values: Partial<InferInsertModel<Schema[Key]>>,
@@ -117,14 +120,20 @@ export const defineFactory = <
       }, {} as Record<Traits, { create: DrizzleFactoryCreateFunction<Schema[Key]> }>),
     };
   };
+
+  factory.resetSequence = sequencer.reset;
+  return factory;
 };
 
 export type ComposedDrizzleFactory<
   Schema extends Record<string, Table>,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Factories extends { [Key in keyof Factories]: DrizzleFactory<Schema, keyof Schema, any> },
-> = (database: Database<Schema>) => {
-  [Key in keyof Factories]: ReturnType<Factories[Key]>;
+> = {
+  (database: Database<Schema>): {
+    [Key in keyof Factories]: ReturnType<Factories[Key]>;
+  };
+  resetSequence: () => void;
 };
 
 export const composeFactory = <
@@ -132,11 +141,19 @@ export const composeFactory = <
   Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any> },
   Schema extends Parameters<Factories[keyof Factories]>[0] extends Database<infer S> ? S : never,
 >(factories: Factories): ComposedDrizzleFactory<Schema, Factories> => {
-  return (database) => {
+  const factory: ComposedDrizzleFactory<Schema, Factories> = (database) => {
     const result: Record<string, unknown> = {};
     for (const key in factories) {
       result[key] = factories[key](database);
     }
     return result as ReturnType<ComposedDrizzleFactory<Schema, Factories>>;
   };
+
+  factory.resetSequence = () => {
+    for (const key in factories) {
+      factories[key].resetSequence();
+    }
+  };
+
+  return factory;
 };
