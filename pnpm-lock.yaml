@@ -36,8 +36,8 @@ importers:
         specifier: 2.0.5
         version: 2.0.5
       drizzle-orm:
-        specifier: 0.43.1
-        version: 0.43.1
+        specifier: 0.44.0
+        version: 0.44.0
       eslint:
         specifier: 9.27.0
         version: 9.27.0(jiti@2.4.2)
@@ -1129,8 +1129,8 @@ packages:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
     engines: {node: '>=10'}
 
-  drizzle-orm@0.43.1:
-    resolution: {integrity: sha512-dUcDaZtE/zN4RV/xqGrVSMpnEczxd5cIaoDeor7Zst9wOe/HzC/7eAaulywWGYXdDEc9oBPMjayVEDg0ziTLJA==}
+  drizzle-orm@0.44.0:
+    resolution: {integrity: sha512-/8wYepe887Gp1eCVILKitNegclGLPUMdK4oDDyDftKJOeHoCylY+XM++chMJloy9oKTceWOALiQMl2aAuFuPTw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -1146,6 +1146,7 @@ packages:
       '@types/better-sqlite3': '*'
       '@types/pg': '*'
       '@types/sql.js': '*'
+      '@upstash/redis': '>=1.34.7'
       '@vercel/postgres': '>=0.8.0'
       '@xata.io/client': '*'
       better-sqlite3: '>=7'
@@ -1188,6 +1189,8 @@ packages:
       '@types/pg':
         optional: true
       '@types/sql.js':
+        optional: true
+      '@upstash/redis':
         optional: true
       '@vercel/postgres':
         optional: true
@@ -3280,7 +3283,7 @@ snapshots:
 
   dotenv@8.6.0: {}
 
-  drizzle-orm@0.43.1: {}
+  drizzle-orm@0.44.0: {}
 
   electron-to-chromium@1.5.109: {}
 
