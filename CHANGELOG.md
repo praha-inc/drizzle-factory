@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.1.1
+
+### Patch Changes
+
+- [#91](https://github.com/praha-inc/drizzle-factory/pull/91) [`22d9186`](https://github.com/praha-inc/drizzle-factory/commit/22d9186f4fc626de89b3798d6d2001b8fd808ccc) Thanks [@Karibash](https://github.com/Karibash)! - Make it explicitly stated that there are no side effects
+
 ## 1.1.0
 
 ### Minor Changes
