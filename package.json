@@ -19,6 +19,7 @@
   },
   "license": "MIT",
   "author": "PrAha, Inc.",
+  "sideEffects": "false",
   "type": "module",
   "exports": {
     "require": {
