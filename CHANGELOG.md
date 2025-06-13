@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.1.2
+
+### Patch Changes
+
+- [#97](https://github.com/praha-inc/drizzle-factory/pull/97) [`8d4d4b6`](https://github.com/praha-inc/drizzle-factory/commit/8d4d4b6514e9d7e128646782ede8fe3d6972285d) Thanks [@Karibash](https://github.com/Karibash)! - Fix sideEffects was not boolean
+
 ## 1.1.1
 
 ### Patch Changes
