@@ -408,6 +408,206 @@ describe('defineFactory', () => {
       });
     });
   });
+
+  describe('when database supports overridingSystemValue', () => {
+    describe('when tables has no generated columns', () => {
+      const schema = {
+        users: pgTable('users', {
+          id: integer().notNull(),
+          name: text().notNull(),
+        }),
+      } satisfies Record<string, Table>;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const values = vi.fn<() => any>(() => Promise.resolve());
+      const overridingSystemValue = vi.fn(() => ({ values }));
+      const insert = vi.fn(() => ({ overridingSystemValue, values }));
+
+      const database: Database<typeof schema> = {
+        _: {
+          fullSchema: schema,
+        },
+        insert,
+      };
+
+      const usersFactory = defineFactory({
+        schema,
+        table: 'users',
+        resolver: ({ sequence }) => {
+          return {
+            id: sequence,
+            name: `name-${sequence}`,
+          };
+        },
+        traits: {
+          admin: ({ sequence }) => {
+            return {
+              id: sequence,
+              name: `admin-${sequence}`,
+            };
+          },
+        },
+      });
+
+      beforeEach(() => {
+        usersFactory.resetSequence();
+      });
+
+      it('should not call overridingSystemValue method when available', async () => {
+        await usersFactory(database).create();
+
+        expect(insert).toHaveBeenCalledWith(schema.users);
+        expect(overridingSystemValue).not.toHaveBeenCalled();
+        expect(values).toHaveBeenCalledWith({
+          id: 1,
+          name: 'name-1',
+        });
+      });
+
+      it('should not call overridingSystemValue method when using a trait', async () => {
+        await usersFactory(database).traits.admin.create();
+
+        expect(insert).toHaveBeenCalledWith(schema.users);
+        expect(overridingSystemValue).not.toHaveBeenCalled();
+        expect(values).toHaveBeenCalledWith({
+          id: 1,
+          name: 'admin-1',
+        });
+      });
+    });
+
+    describe('when table has generated columns', () => {
+      const schema = {
+        users: pgTable('users', {
+          id: integer().notNull(),
+          name: text().notNull().generatedAlwaysAs('name'),
+        }),
+      } satisfies Record<string, Table>;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const values = vi.fn<() => any>(() => Promise.resolve());
+      const overridingSystemValue = vi.fn(() => ({ values }));
+      const insert = vi.fn(() => ({ overridingSystemValue, values }));
+
+      const database: Database<typeof schema> = {
+        _: {
+          fullSchema: schema,
+        },
+        insert,
+      };
+
+      const usersFactory = defineFactory({
+        schema,
+        table: 'users',
+        resolver: ({ sequence }) => {
+          return {
+            id: sequence,
+            name: `name-${sequence}`,
+          };
+        },
+        traits: {
+          admin: ({ sequence }) => {
+            return {
+              id: sequence,
+              name: `admin-${sequence}`,
+            };
+          },
+        },
+      });
+
+      beforeEach(() => {
+        usersFactory.resetSequence();
+      });
+
+      it('should call overridingSystemValue method when available', async () => {
+        await usersFactory(database).create();
+
+        expect(insert).toHaveBeenCalledWith(schema.users);
+        expect(overridingSystemValue).toHaveBeenCalledTimes(1);
+        expect(values).toHaveBeenCalledWith({
+          id: 1,
+          name: 'name-1',
+        });
+      });
+
+      it('should call overridingSystemValue method when using a trait', async () => {
+        await usersFactory(database).traits.admin.create();
+
+        expect(insert).toHaveBeenCalledWith(schema.users);
+        expect(overridingSystemValue).toHaveBeenCalledTimes(1);
+        expect(values).toHaveBeenCalledWith({
+          id: 1,
+          name: 'admin-1',
+        });
+      });
+    });
+
+    describe('when table has generated columns with identity', () => {
+      const schema = {
+        users: pgTable('users', {
+          id: integer().notNull().generatedAlwaysAsIdentity(),
+          name: text().notNull(),
+        }),
+      } satisfies Record<string, Table>;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const values = vi.fn<() => any>(() => Promise.resolve());
+      const overridingSystemValue = vi.fn(() => ({ values }));
+      const insert = vi.fn(() => ({ overridingSystemValue, values }));
+
+      const database: Database<typeof schema> = {
+        _: {
+          fullSchema: schema,
+        },
+        insert,
+      };
+
+      const usersFactory = defineFactory({
+        schema,
+        table: 'users',
+        resolver: ({ sequence }) => {
+          return {
+            id: sequence,
+            name: `name-${sequence}`,
+          };
+        },
+        traits: {
+          admin: ({ sequence }) => {
+            return {
+              id: sequence,
+              name: `admin-${sequence}`,
+            };
+          },
+        },
+      });
+
+      beforeEach(() => {
+        usersFactory.resetSequence();
+      });
+
+      it('should call overridingSystemValue method when available', async () => {
+        await usersFactory(database).create();
+
+        expect(insert).toHaveBeenCalledWith(schema.users);
+        expect(overridingSystemValue).toHaveBeenCalledTimes(1);
+        expect(values).toHaveBeenCalledWith({
+          id: 1,
+          name: 'name-1',
+        });
+      });
+
+      it('should call overridingSystemValue method when using a trait', async () => {
+        await usersFactory(database).traits.admin.create();
+
+        expect(insert).toHaveBeenCalledWith(schema.users);
+        expect(overridingSystemValue).toHaveBeenCalledTimes(1);
+        expect(values).toHaveBeenCalledWith({
+          id: 1,
+          name: 'admin-1',
+        });
+      });
+    });
+  });
 });
 
 describe('composeFactory', () => {
