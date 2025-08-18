@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.2.0
+
+### Minor Changes
+
+- [#134](https://github.com/praha-inc/drizzle-factory/pull/134) [`d49d579`](https://github.com/praha-inc/drizzle-factory/commit/d49d579369df2890a9eee5c290b55f9f902f5e16) Thanks [@Karibash](https://github.com/Karibash)! - Add overridingSystemValue support for database inserts
+
 ## 1.1.2
 
 ### Patch Changes
