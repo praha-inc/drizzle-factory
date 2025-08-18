@@ -4,7 +4,7 @@ import type { Database } from './types/database';
 import type { FixedArray } from './types/fixed-array';
 import type { InferInsert } from './types/infer-insert';
 import type { Override, OverrideArray } from './types/override';
-import type { Table } from 'drizzle-orm';
+import type { Column, Table } from 'drizzle-orm';
 
 export type DrizzleFactoryCreateFunction<Insert, Base> = {
   (): Promise<Base>;
@@ -94,7 +94,13 @@ export const defineFactory = <
         ),
       } as Value;
 
-      return database.insert(schema[table]).values(insertValues).then(() => insertValues);
+      const hasSystemValueColumn = Object.values(schema[table]!).some((column: Column) => {
+        return column.generated?.type === 'always' || column.generatedIdentity?.type === 'always';
+      });
+
+      const builder = database.insert(schema[table]);
+      if (hasSystemValueColumn && 'overridingSystemValue' in builder) builder.overridingSystemValue();
+      return builder.values(insertValues).then(() => insertValues);
     };
 
     const defineCreateFunction = <Value extends InferInsert<Schema[Key]>>(
