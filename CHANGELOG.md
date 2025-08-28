@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.2.1
+
+### Patch Changes
+
+- [#144](https://github.com/praha-inc/drizzle-factory/pull/144) [`26d0da3`](https://github.com/praha-inc/drizzle-factory/commit/26d0da3e3622839668d669d1b14ecfe97ee84f24) Thanks [@Karibash](https://github.com/Karibash)! - Fix the bug causing type errors in composeFactory
+
 ## 1.2.0
 
 ### Minor Changes
