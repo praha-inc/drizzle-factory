@@ -1,6 +1,6 @@
 import { createSequencer } from './helpers/create-sequencer';
 
-import type { Database } from './types/database';
+import type { DatabaseOrFn } from './types/database';
 import type { FixedArray } from './types/fixed-array';
 import type { InferInsert } from './types/infer-insert';
 import type { Override, OverrideArray } from './types/override';
@@ -23,7 +23,7 @@ export type DrizzleFactory<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Traits extends Record<string, DefineFactoryResolver<Schema, Key, any>>,
 > = {
-  (database: Database<Schema>): {
+  (databaseOrFn: DatabaseOrFn<Schema>): {
     create: DrizzleFactoryCreateFunction<InferInsert<Schema[Key]>, Value>;
     traits: {
       [K in keyof Traits]: {
@@ -68,7 +68,7 @@ export const defineFactory = <
   Traits extends Record<string, DefineFactoryResolver<Schema, Key, any>>,
 >({ schema, table, resolver, traits }: DefineFactoryOptions<Schema, Key, Value, Traits>): DrizzleFactory<Schema, Key, Value, Traits> => {
   const sequencer = createSequencer();
-  const factory: DrizzleFactory<Schema, Key, Value, Traits> = (database) => {
+  const factory: DrizzleFactory<Schema, Key, Value, Traits> = (databaseOrFn) => {
     const insert = async <Value extends InferInsert<Schema[Key]>>(
       resolver: DefineFactoryResolver<Schema, Key, Value>,
       values: Partial<InferInsert<Schema[Key]>>,
@@ -77,7 +77,7 @@ export const defineFactory = <
         sequence: sequencer(),
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        use: (factory) => factory(database),
+        use: (factory) => factory(databaseOrFn),
       });
 
       const insertValues = {
@@ -98,6 +98,7 @@ export const defineFactory = <
         return column.generated?.type === 'always' || column.generatedIdentity?.type === 'always';
       });
 
+      const database = typeof databaseOrFn === 'function' ? databaseOrFn() : databaseOrFn;
       const builder = database.insert(schema[table]);
       if (hasSystemValueColumn && 'overridingSystemValue' in builder) builder.overridingSystemValue();
       return builder.values(insertValues).then(() => insertValues);
@@ -154,9 +155,9 @@ export const defineFactory = <
 export type ComposedDrizzleFactory<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any> },
-  Schema extends Parameters<Factories[keyof Factories]>[0] extends Database<infer S> ? S : never,
+  Schema extends Parameters<Factories[keyof Factories]>[0] extends DatabaseOrFn<infer S> ? S : never,
 > = {
-  (database: Database<Schema> | (() => Database<Schema>)): {
+  (DatabaseOrFn: DatabaseOrFn<Schema>): {
     [Key in keyof Factories]: ReturnType<Factories[Key]>;
   };
   resetSequence: () => void;
@@ -165,13 +166,12 @@ export type ComposedDrizzleFactory<
 export const composeFactory = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any> },
-  Schema extends Parameters<Factories[keyof Factories]>[0] extends Database<infer S> ? S : never,
+  Schema extends Parameters<Factories[keyof Factories]>[0] extends DatabaseOrFn<infer S> ? S : never,
 >(factories: Factories): ComposedDrizzleFactory<Factories, Schema> => {
   const factory: ComposedDrizzleFactory<Factories, Schema> = (databaseOrFn) => {
-    const database = typeof databaseOrFn === 'function' ? databaseOrFn() : databaseOrFn;
     const result: Record<string, unknown> = {};
     for (const key in factories) {
-      result[key] = factories[key](database);
+      result[key] = factories[key](databaseOrFn);
     }
     return result as ReturnType<ComposedDrizzleFactory<Factories, Schema>>;
   };

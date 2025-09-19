@@ -13,3 +13,5 @@ export type Database<Schema extends Record<string, Table>> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   insert: (table: any) => InsertBuilder;
 };
+
+export type DatabaseOrFn<Schema extends Record<string, Table>> = Database<Schema> | (() => Database<Schema>);

@@ -744,13 +744,24 @@ describe('composeFactory', () => {
   });
 
   describe('when database is provided as a function', () => {
-    it('should create a single user', async () => {
-      const user = await factory(() => database).users.create();
+    const fn = vi.fn(() => database);
 
+    it('should create a single user', async () => {
+      const user = await factory(fn).users.create();
+
+      expect(fn).toHaveBeenCalled();
       expect(user).toEqual({
         id: 1,
         name: 'name-1',
       });
+    });
+
+    it('should not call the function until create is called', () => {
+      const fn = vi.fn(() => database);
+
+      factory(fn);
+
+      expect(fn).not.toHaveBeenCalled();
     });
   });
 });
