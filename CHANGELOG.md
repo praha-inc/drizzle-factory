@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.3.0
+
+### Minor Changes
+
+- [#159](https://github.com/praha-inc/drizzle-factory/pull/159) [`fe2d8a2`](https://github.com/praha-inc/drizzle-factory/commit/fe2d8a266a773067d8c597d1937e32e765eebff1) Thanks [@Karibash](https://github.com/Karibash)! - Add support for function-based database parameter in composeFactory
+
 ## 1.2.1
 
 ### Patch Changes
