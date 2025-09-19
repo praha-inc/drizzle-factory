@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.3.1
+
+### Patch Changes
+
+- [#161](https://github.com/praha-inc/drizzle-factory/pull/161) [`b6a4d6a`](https://github.com/praha-inc/drizzle-factory/commit/b6a4d6a318840c833e7d8c0d17bb331d6b756cee) Thanks [@Karibash](https://github.com/Karibash)! - Make the function call when a database is needed
+
 ## 1.3.0
 
 ### Minor Changes
