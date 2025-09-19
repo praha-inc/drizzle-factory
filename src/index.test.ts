@@ -742,4 +742,15 @@ describe('composeFactory', () => {
       });
     });
   });
+
+  describe('when database is provided as a function', () => {
+    it('should create a single user', async () => {
+      const user = await factory(() => database).users.create();
+
+      expect(user).toEqual({
+        id: 1,
+        name: 'name-1',
+      });
+    });
+  });
 });

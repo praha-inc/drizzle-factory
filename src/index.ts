@@ -156,7 +156,7 @@ export type ComposedDrizzleFactory<
   Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any> },
   Schema extends Parameters<Factories[keyof Factories]>[0] extends Database<infer S> ? S : never,
 > = {
-  (database: Database<Schema>): {
+  (database: Database<Schema> | (() => Database<Schema>)): {
     [Key in keyof Factories]: ReturnType<Factories[Key]>;
   };
   resetSequence: () => void;
@@ -167,7 +167,8 @@ export const composeFactory = <
   Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any> },
   Schema extends Parameters<Factories[keyof Factories]>[0] extends Database<infer S> ? S : never,
 >(factories: Factories): ComposedDrizzleFactory<Factories, Schema> => {
-  const factory: ComposedDrizzleFactory<Factories, Schema> = (database) => {
+  const factory: ComposedDrizzleFactory<Factories, Schema> = (databaseOrFn) => {
+    const database = typeof databaseOrFn === 'function' ? databaseOrFn() : databaseOrFn;
     const result: Record<string, unknown> = {};
     for (const key in factories) {
       result[key] = factories[key](database);
