@@ -187,7 +187,7 @@ const postsFactory = defineFactory({
   }),
   seeds: {
     john: async ({ use }) => {
-      const john = await use(usersFactory).seeds.john();
+      const john = await use(usersFactory).seeds.john.create();
       return [
         {
           userId: john.id,
@@ -207,7 +207,7 @@ Using seeds:
 
 ```ts
 // Create a single user using the john seed
-const john = await usersFactory(database).seeds.john();
+const john = await usersFactory(database).seeds.john.create();
 console.log(john);
 /*
 {
@@ -217,7 +217,7 @@ console.log(john);
  */
 
 // Create multiple posts using the john seed
-const johnPosts = await postsFactory(database).seeds.john();
+const johnPosts = await postsFactory(database).seeds.john.create();
 console.log(johnPosts);
 /*
 [
