@@ -45,6 +45,13 @@ describe('defineFactory', () => {
         };
       },
     },
+    seeds: {
+      john: () => {
+        return {
+          name: 'John Doe',
+        };
+      },
+    },
   });
 
   const postsFactory = defineFactory({
@@ -64,6 +71,21 @@ describe('defineFactory', () => {
           userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
           title: `admin-title-${sequence}`,
         };
+      },
+    },
+    seeds: {
+      john: async ({ use }) => {
+        const john = await use(usersFactory).seeds.john();
+        return [
+          {
+            userId: john.id,
+            title: 'John\'s First Post',
+          },
+          {
+            userId: john.id,
+            title: 'John\'s Second Post',
+          },
+        ];
       },
     },
   });
@@ -289,6 +311,37 @@ describe('defineFactory', () => {
         });
       });
     });
+
+    describe('when using a seed', () => {
+      it('should create a user', async () => {
+        const user = await usersFactory(database).seeds.john();
+
+        expect(user).toEqual({
+          id: 1,
+          name: 'John Doe',
+        });
+      });
+
+      it('should call values', async () => {
+        await usersFactory(database).seeds.john();
+
+        expect(values).toHaveBeenCalledTimes(1);
+        expect(values).toHaveBeenNthCalledWith(1, {
+          id: 1,
+          name: 'John Doe',
+        });
+      });
+
+      it('should increment sequence', async () => {
+        await usersFactory(database).seeds.john();
+        const user = await usersFactory(database).create();
+
+        expect(user).toEqual({
+          id: 2,
+          name: 'name-2',
+        });
+      });
+    });
   });
 
   describe('when creating a post', () => {
@@ -404,6 +457,56 @@ describe('defineFactory', () => {
 
             expect(values).toHaveBeenCalledTimes(1);
           });
+        });
+      });
+    });
+
+    describe('when using a seed', () => {
+      it('should create posts', async () => {
+        const posts = await postsFactory(database).seeds.john();
+
+        expect(posts).toEqual([
+          {
+            id: 1,
+            userId: 1,
+            title: 'John\'s First Post',
+          },
+          {
+            id: 2,
+            userId: 1,
+            title: 'John\'s Second Post',
+          },
+        ]);
+      });
+
+      it('should call values', async () => {
+        await postsFactory(database).seeds.john();
+
+        expect(values).toHaveBeenCalledTimes(3);
+        expect(values).toHaveBeenNthCalledWith(1, {
+          id: 1,
+          name: 'John Doe',
+        });
+        expect(values).toHaveBeenNthCalledWith(2, {
+          id: 1,
+          userId: 1,
+          title: 'John\'s First Post',
+        });
+        expect(values).toHaveBeenNthCalledWith(3, {
+          id: 2,
+          userId: 1,
+          title: 'John\'s Second Post',
+        });
+      });
+
+      it('should increment sequence', async () => {
+        await postsFactory(database).seeds.john();
+        const post = await postsFactory(database).create();
+
+        expect(post).toEqual({
+          id: 3,
+          userId: 2,
+          title: 'title-3',
         });
       });
     });
@@ -645,6 +748,11 @@ describe('composeFactory', () => {
         name: `admin-${sequence}`,
       }),
     },
+    seeds: {
+      john: () => ({
+        name: 'John Doe',
+      }),
+    },
   });
 
   const postsFactory = defineFactory({
@@ -661,6 +769,21 @@ describe('composeFactory', () => {
         userId: () => use(usersFactory).traits.admin.create().then((user) => user.id),
         title: `admin-title-${sequence}`,
       }),
+    },
+    seeds: {
+      john: async ({ use }) => {
+        const john = await use(usersFactory).seeds.john();
+        return [
+          {
+            userId: john.id,
+            title: 'John\'s First Post',
+          },
+          {
+            userId: john.id,
+            title: 'John\'s Second Post',
+          },
+        ];
+      },
     },
   });
 
@@ -698,6 +821,15 @@ describe('composeFactory', () => {
       expect(user).toEqual({
         id: 1,
         name: 'admin-1',
+      });
+    });
+
+    it('should create a user with a seed', async () => {
+      const user = await factory(database).users.seeds.john();
+
+      expect(user).toEqual({
+        id: 1,
+        name: 'John Doe',
       });
     });
   });
@@ -740,6 +872,23 @@ describe('composeFactory', () => {
         userId: 1,
         title: 'admin-title-1',
       });
+    });
+
+    it('should create a post with a seed', async () => {
+      const posts = await factory(database).posts.seeds.john();
+
+      expect(posts).toEqual([
+        {
+          id: 1,
+          userId: 1,
+          title: 'John\'s First Post',
+        },
+        {
+          id: 2,
+          userId: 1,
+          title: 'John\'s Second Post',
+        },
+      ]);
     });
   });
 
