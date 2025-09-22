@@ -6,7 +6,24 @@ import type { FixedArray } from './types/fixed-array';
 import type { InferInsert } from './types/infer-insert';
 import type { MaybePromise } from './types/maybe-promise';
 import type { Override, OverrideArray } from './types/override';
+import type { ResolveValue } from './types/resolve-value';
 import type { Column, Table } from 'drizzle-orm';
+
+export type DefineFactoryResolver<
+  Schema extends Record<string, Table>,
+  Key extends keyof Schema,
+> = (parameters: {
+  sequence: number;
+  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
+}) => { [K in keyof InferInsert<Schema[Key]>]: InferInsert<Schema[Key]>[K] | (() => MaybePromise<InferInsert<Schema[Key]>[K]>) };
+
+export type DefineFactorySeedResolver<
+  Schema extends Record<string, Table>,
+  Key extends keyof Schema,
+> = (parameters: {
+  sequence: number;
+  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
+}) => MaybePromise<Partial<InferInsert<Schema[Key]>> | Partial<InferInsert<Schema[Key]>>[]>;
 
 export type DrizzleFactoryCreateFunction<Insert, Base> = {
   (): Promise<Base>;
@@ -21,17 +38,17 @@ export type DrizzleFactoryCreateFunction<Insert, Base> = {
 export type DrizzleFactory<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
-  Value extends InferInsert<Schema[Key]>,
-  Traits extends Record<string, DefineFactoryResolver<Schema, Key, any>>,
-  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key, any>>,
+  Resolver extends DefineFactoryResolver<Schema, Key>,
+  Traits extends Record<string, DefineFactoryResolver<Schema, Key>>,
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key>>,
 > = {
   (databaseOrFn: DatabaseOrFn<Schema>): {
-    create: DrizzleFactoryCreateFunction<InferInsert<Schema[Key]>, Value>;
+    create: DrizzleFactoryCreateFunction<InferInsert<Schema[Key]>, ResolveValue<Awaited<ReturnType<Resolver>>>>;
     traits: {
       [K in keyof Traits]: {
         create: DrizzleFactoryCreateFunction<
           InferInsert<Schema[Key]>,
-          Traits[K] extends DefineFactoryResolver<Schema, Key, infer TraitValue> ? TraitValue : never
+          ResolveValue<Awaited<ReturnType<Traits[K]>>>
         >;
       };
     };
@@ -39,8 +56,8 @@ export type DrizzleFactory<
       [K in keyof Seeds]: {
         create: () => Promise<
           Awaited<ReturnType<Seeds[K]>> extends Array<any>
-            ? OverrideArray<Value, Awaited<ReturnType<Seeds[K]>>>
-            : Override<Value, Awaited<ReturnType<Seeds[K]>>>
+            ? OverrideArray<ResolveValue<Awaited<ReturnType<Resolver>>>, Awaited<ReturnType<Seeds[K]>>>
+            : Override<ResolveValue<Awaited<ReturnType<Resolver>>>, Awaited<ReturnType<Seeds[K]>>>
         >;
       };
     };
@@ -48,34 +65,16 @@ export type DrizzleFactory<
   resetSequence: () => void;
 };
 
-export type DefineFactoryResolver<
-  Schema extends Record<string, Table>,
-  Key extends keyof Schema,
-  Value extends InferInsert<Schema[Key]>,
-> = (parameters: {
-  sequence: number;
-  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
-}) => { [K in keyof Value]: Value[K] | (() => Promise<Value[K]>) };
-
-export type DefineFactorySeedResolver<
-  Schema extends Record<string, Table>,
-  Key extends keyof Schema,
-  Value extends InferInsert<Schema[Key]>,
-> = (parameters: {
-  sequence: number;
-  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
-}) => MaybePromise<Partial<Value> | Partial<Value>[]>;
-
 export type DefineFactoryOptions<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
-  Value extends InferInsert<Schema[Key]>,
-  Traits extends Record<string, DefineFactoryResolver<Schema, Key, Value>>,
-  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key, Value>>,
+  Resolver extends DefineFactoryResolver<Schema, Key>,
+  Traits extends Record<string, DefineFactoryResolver<Schema, Key>>,
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key>>,
 > = {
   schema: Schema;
   table: Key;
-  resolver: DefineFactoryResolver<Schema, Key, Value>;
+  resolver: Resolver;
   traits?: Traits;
   seeds?: Seeds;
 };
@@ -83,20 +82,20 @@ export type DefineFactoryOptions<
 export const defineFactory = <
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
-  Value extends InferInsert<Schema[Key]>,
-  Traits extends Record<string, DefineFactoryResolver<Schema, Key, Value>>,
-  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key, Value>>,
+  Resolver extends DefineFactoryResolver<Schema, Key>,
+  Traits extends Record<string, DefineFactoryResolver<Schema, Key>>,
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key>>,
 >({
   schema,
   table,
   resolver,
   traits,
   seeds,
-}: DefineFactoryOptions<Schema, Key, Value, Traits, Seeds>): DrizzleFactory<Schema, Key, Value, Traits, Seeds> => {
+}: DefineFactoryOptions<Schema, Key, Resolver, Traits, Seeds>): DrizzleFactory<Schema, Key, Resolver, Traits, Seeds> => {
   const sequencer = createSequencer();
-  const factory: DrizzleFactory<Schema, Key, Value, Traits, Seeds> = (databaseOrFn) => {
+  const factory: DrizzleFactory<Schema, Key, Resolver, Traits, Seeds> = (databaseOrFn) => {
     const insert = async <Value extends InferInsert<Schema[Key]>>(
-      resolver: DefineFactoryResolver<Schema, Key, Value>,
+      resolver: DefineFactoryResolver<Schema, Key>,
       values: Partial<InferInsert<Schema[Key]>>,
     ): Promise<Value> => {
       const built = resolver({
@@ -130,10 +129,10 @@ export const defineFactory = <
       return builder.values(insertValues).then(() => insertValues);
     };
 
-    const defineCreateFunction = <Value extends InferInsert<Schema[Key]>>(
-      resolver: DefineFactoryResolver<Schema, Key, Value>,
+    const defineCreateFunction = (
+      resolver: DefineFactoryResolver<Schema, Key>,
     ) => {
-      return (async (value: unknown) => {
+      return async (value: unknown) => {
         if (!value) {
           return await insert(resolver, {});
         }
@@ -156,11 +155,11 @@ export const defineFactory = <
         }
 
         return await insert(resolver, value);
-      }) as DrizzleFactoryCreateFunction<InferInsert<Schema[Key]>, Value>;
+      };
     };
 
-    const defineSeedFunction = <Value extends InferInsert<Schema[Key]>>(
-      seedResolver: DefineFactorySeedResolver<Schema, Key, Value>,
+    const defineSeedFunction = (
+      seedResolver: DefineFactorySeedResolver<Schema, Key>,
     ) => {
       const create = defineCreateFunction(resolver);
       return async () => {
@@ -175,7 +174,8 @@ export const defineFactory = <
     };
 
     return {
-      create: defineCreateFunction(resolver),
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      create: defineCreateFunction(resolver) as any,
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       traits: Object.fromEntries(
         Object.entries(traits || {}).map(([key, traitResolver]) => [
