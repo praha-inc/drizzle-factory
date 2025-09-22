@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSequencer } from './helpers/create-sequencer';
 
 import type { DatabaseOrFn } from './types/database';
 import type { FixedArray } from './types/fixed-array';
 import type { InferInsert } from './types/infer-insert';
+import type { MaybePromise } from './types/maybe-promise';
 import type { Override, OverrideArray } from './types/override';
 import type { Column, Table } from 'drizzle-orm';
 
@@ -20,8 +22,8 @@ export type DrizzleFactory<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
   Value extends InferInsert<Schema[Key]>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Traits extends Record<string, DefineFactoryResolver<Schema, Key, any>>,
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key, any>>,
 > = {
   (databaseOrFn: DatabaseOrFn<Schema>): {
     create: DrizzleFactoryCreateFunction<InferInsert<Schema[Key]>, Value>;
@@ -33,6 +35,13 @@ export type DrizzleFactory<
         >;
       };
     };
+    seeds: {
+      [K in keyof Seeds]: () => Promise<
+        Awaited<ReturnType<Seeds[K]>> extends Array<any>
+          ? OverrideArray<Value, Awaited<ReturnType<Seeds[K]>>>
+          : Override<Value, Awaited<ReturnType<Seeds[K]>>>
+      >;
+    };
   };
   resetSequence: () => void;
 };
@@ -43,20 +52,30 @@ export type DefineFactoryResolver<
   Value extends InferInsert<Schema[Key]>,
 > = (parameters: {
   sequence: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  use: <Factory extends DrizzleFactory<Schema, any, any, any>>(factory: Factory) => ReturnType<Factory>;
+  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
 }) => { [K in keyof Value]: Value[K] | (() => Promise<Value[K]>) };
+
+export type DefineFactorySeedResolver<
+  Schema extends Record<string, Table>,
+  Key extends keyof Schema,
+  Value extends InferInsert<Schema[Key]>,
+> = (parameters: {
+  sequence: number;
+  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
+}) => MaybePromise<Partial<Value> | Partial<Value>[]>;
 
 export type DefineFactoryOptions<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
   Value extends InferInsert<Schema[Key]>,
   Traits extends Record<string, DefineFactoryResolver<Schema, Key, Value>>,
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key, Value>>,
 > = {
   schema: Schema;
   table: Key;
   resolver: DefineFactoryResolver<Schema, Key, Value>;
   traits?: Traits;
+  seeds?: Seeds;
 };
 
 export const defineFactory = <
@@ -64,9 +83,16 @@ export const defineFactory = <
   Key extends keyof Schema,
   Value extends InferInsert<Schema[Key]>,
   Traits extends Record<string, DefineFactoryResolver<Schema, Key, Value>>,
->({ schema, table, resolver, traits }: DefineFactoryOptions<Schema, Key, Value, Traits>): DrizzleFactory<Schema, Key, Value, Traits> => {
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key, Value>>,
+>({
+  schema,
+  table,
+  resolver,
+  traits,
+  seeds,
+}: DefineFactoryOptions<Schema, Key, Value, Traits, Seeds>): DrizzleFactory<Schema, Key, Value, Traits, Seeds> => {
   const sequencer = createSequencer();
-  const factory: DrizzleFactory<Schema, Key, Value, Traits> = (databaseOrFn) => {
+  const factory: DrizzleFactory<Schema, Key, Value, Traits, Seeds> = (databaseOrFn) => {
     const insert = async <Value extends InferInsert<Schema[Key]>>(
       resolver: DefineFactoryResolver<Schema, Key, Value>,
       values: Partial<InferInsert<Schema[Key]>>,
@@ -131,6 +157,21 @@ export const defineFactory = <
       }) as DrizzleFactoryCreateFunction<InferInsert<Schema[Key]>, Value>;
     };
 
+    const defineSeedFunction = <Value extends InferInsert<Schema[Key]>>(
+      seedResolver: DefineFactorySeedResolver<Schema, Key, Value>,
+    ) => {
+      const create = defineCreateFunction(resolver);
+      return async () => {
+        const seed = await seedResolver({
+          sequence: sequencer.current(),
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-expect-error
+          use: (factory) => factory(databaseOrFn),
+        });
+        return Array.isArray(seed) ? create(seed) : create(seed);
+      };
+    };
+
     return {
       create: defineCreateFunction(resolver),
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -141,7 +182,13 @@ export const defineFactory = <
             create: defineCreateFunction(traitResolver),
           },
         ]),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ) as any,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      seeds: Object.fromEntries(
+        Object.entries(seeds || {}).map(([key, seedResolver]) => [
+          key,
+          defineSeedFunction(seedResolver),
+        ]),
       ) as any,
     };
   };
@@ -151,8 +198,7 @@ export const defineFactory = <
 };
 
 export type ComposedDrizzleFactory<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any> },
+  Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any, any> },
   Schema extends Parameters<Factories[keyof Factories]>[0] extends DatabaseOrFn<infer S> ? S : never,
 > = {
   (DatabaseOrFn: DatabaseOrFn<Schema>): {
@@ -162,8 +208,7 @@ export type ComposedDrizzleFactory<
 };
 
 export const composeFactory = <
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any> },
+  Factories extends { [Key in keyof Factories]: DrizzleFactory<any, Key, any, any, any> },
   Schema extends Parameters<Factories[keyof Factories]>[0] extends DatabaseOrFn<infer S> ? S : never,
 >(factories: Factories): ComposedDrizzleFactory<Factories, Schema> => {
   const factory: ComposedDrizzleFactory<Factories, Schema> = (databaseOrFn) => {

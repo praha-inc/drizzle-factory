@@ -158,6 +158,85 @@ console.log(adminUser);
  */
 ```
 
+#### Using Seeds
+
+Seeds allow you to define reusable data sets that can be used across your tests or development environment. You can define a factory with seeds like this:
+
+```ts
+const usersFactory = defineFactory({
+  schema,
+  table: 'users',
+  resolver: ({ sequence }) => ({
+    id: sequence,
+    name: `name-${sequence}`,
+  }),
+  seeds: {
+    john: () => ({
+      name: 'John Doe',
+    }),
+  },
+});
+
+const postsFactory = defineFactory({
+  schema,
+  table: 'posts',
+  resolver: ({ sequence, use }) => ({
+    id: sequence,
+    userId: () => use(usersFactory).create().then((user) => user.id),
+    title: `title-${sequence}`,
+  }),
+  seeds: {
+    john: async ({ use }) => {
+      const john = await use(usersFactory).seeds.john();
+      return [
+        {
+          userId: john.id,
+          title: 'John\'s First Post',
+        },
+        {
+          userId: john.id,
+          title: 'John\'s Second Post',
+        },
+      ];
+    },
+  },
+});
+```
+
+Using seeds:
+
+```ts
+// Create a single user using the john seed
+const john = await usersFactory(database).seeds.john();
+console.log(john);
+/*
+{
+  id: 1,
+  name: 'John Doe',
+}
+ */
+
+// Create multiple posts using the john seed
+const johnPosts = await postsFactory(database).seeds.john();
+console.log(johnPosts);
+/*
+[
+  {
+    id: 1,
+    userId: 1,
+    title: 'John's First Post',
+  },
+  {
+    id: 2,
+    userId: 1,
+    title: 'John's Second Post',
+  },
+]
+ */
+```
+
+Seeds can return either a single object or an array of objects. When using the `use` function within seeds, you can reference other factories and their seeds to create related data efficiently.
+
 #### Composing Factories
 
 You can compose multiple factories into a single factory using `composeFactory`. This is useful when dealing with related tables.
