@@ -1,5 +1,19 @@
 # @praha/drizzle-factory
 
+## 1.4.0
+
+### Minor Changes
+
+- [#166](https://github.com/praha-inc/drizzle-factory/pull/166) [`ecb7cb2`](https://github.com/praha-inc/drizzle-factory/commit/ecb7cb2a2a3aca482153c50a77064c6ed9461dd1) Thanks [@Karibash](https://github.com/Karibash)! - Add seed feature
+
+### Patch Changes
+
+- [#164](https://github.com/praha-inc/drizzle-factory/pull/164) [`e01f3fc`](https://github.com/praha-inc/drizzle-factory/commit/e01f3fc6239c97775a60ddffbbee96c98f04d535) Thanks [@Karibash](https://github.com/Karibash)! - Fix issue where trait option type inference was not working
+
+- [#167](https://github.com/praha-inc/drizzle-factory/pull/167) [`7defe8c`](https://github.com/praha-inc/drizzle-factory/commit/7defe8c32b048b96a0a04500818b47f115c95760) Thanks [@Karibash](https://github.com/Karibash)! - Change seeds API to use .create() method for consistency
+
+- [#169](https://github.com/praha-inc/drizzle-factory/pull/169) [`732cb1b`](https://github.com/praha-inc/drizzle-factory/commit/732cb1b99935221474ba4cb5a2245538083782c1) Thanks [@Karibash](https://github.com/Karibash)! - Fix issue where using const assertions in resolver breaks the types of traits and seeds
+
 ## 1.3.1
 
 ### Patch Changes
