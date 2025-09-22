@@ -36,11 +36,13 @@ export type DrizzleFactory<
       };
     };
     seeds: {
-      [K in keyof Seeds]: () => Promise<
-        Awaited<ReturnType<Seeds[K]>> extends Array<any>
-          ? OverrideArray<Value, Awaited<ReturnType<Seeds[K]>>>
-          : Override<Value, Awaited<ReturnType<Seeds[K]>>>
-      >;
+      [K in keyof Seeds]: {
+        create: () => Promise<
+          Awaited<ReturnType<Seeds[K]>> extends Array<any>
+            ? OverrideArray<Value, Awaited<ReturnType<Seeds[K]>>>
+            : Override<Value, Awaited<ReturnType<Seeds[K]>>>
+        >;
+      };
     };
   };
   resetSequence: () => void;
@@ -187,7 +189,9 @@ export const defineFactory = <
       seeds: Object.fromEntries(
         Object.entries(seeds || {}).map(([key, seedResolver]) => [
           key,
-          defineSeedFunction(seedResolver),
+          {
+            create: defineSeedFunction(seedResolver),
+          },
         ]),
       ) as any,
     };

@@ -75,7 +75,7 @@ describe('defineFactory', () => {
     },
     seeds: {
       john: async ({ use }) => {
-        const john = await use(usersFactory).seeds.john();
+        const john = await use(usersFactory).seeds.john.create();
         return [
           {
             userId: john.id,
@@ -314,7 +314,7 @@ describe('defineFactory', () => {
 
     describe('when using a seed', () => {
       it('should create a user', async () => {
-        const user = await usersFactory(database).seeds.john();
+        const user = await usersFactory(database).seeds.john.create();
 
         expect(user).toEqual({
           id: 1,
@@ -323,7 +323,7 @@ describe('defineFactory', () => {
       });
 
       it('should call values', async () => {
-        await usersFactory(database).seeds.john();
+        await usersFactory(database).seeds.john.create();
 
         expect(values).toHaveBeenCalledTimes(1);
         expect(values).toHaveBeenNthCalledWith(1, {
@@ -333,7 +333,7 @@ describe('defineFactory', () => {
       });
 
       it('should increment sequence', async () => {
-        await usersFactory(database).seeds.john();
+        await usersFactory(database).seeds.john.create();
         const user = await usersFactory(database).create();
 
         expect(user).toEqual({
@@ -463,7 +463,7 @@ describe('defineFactory', () => {
 
     describe('when using a seed', () => {
       it('should create posts', async () => {
-        const posts = await postsFactory(database).seeds.john();
+        const posts = await postsFactory(database).seeds.john.create();
 
         expect(posts).toEqual([
           {
@@ -480,7 +480,7 @@ describe('defineFactory', () => {
       });
 
       it('should call values', async () => {
-        await postsFactory(database).seeds.john();
+        await postsFactory(database).seeds.john.create();
 
         expect(values).toHaveBeenCalledTimes(3);
         expect(values).toHaveBeenNthCalledWith(1, {
@@ -500,7 +500,7 @@ describe('defineFactory', () => {
       });
 
       it('should increment sequence', async () => {
-        await postsFactory(database).seeds.john();
+        await postsFactory(database).seeds.john.create();
         const post = await postsFactory(database).create();
 
         expect(post).toEqual({
@@ -772,7 +772,7 @@ describe('composeFactory', () => {
     },
     seeds: {
       john: async ({ use }) => {
-        const john = await use(usersFactory).seeds.john();
+        const john = await use(usersFactory).seeds.john.create();
         return [
           {
             userId: john.id,
@@ -825,7 +825,7 @@ describe('composeFactory', () => {
     });
 
     it('should create a user with a seed', async () => {
-      const user = await factory(database).users.seeds.john();
+      const user = await factory(database).users.seeds.john.create();
 
       expect(user).toEqual({
         id: 1,
@@ -875,7 +875,7 @@ describe('composeFactory', () => {
     });
 
     it('should create a post with a seed', async () => {
-      const posts = await factory(database).posts.seeds.john();
+      const posts = await factory(database).posts.seeds.john.create();
 
       expect(posts).toEqual([
         {
