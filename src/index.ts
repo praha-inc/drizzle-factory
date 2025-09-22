@@ -51,8 +51,7 @@ export type DefineFactoryOptions<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
   Value extends InferInsert<Schema[Key]>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Traits extends Record<string, DefineFactoryResolver<Schema, Key, any>>,
+  Traits extends Record<string, DefineFactoryResolver<Schema, Key, Value>>,
 > = {
   schema: Schema;
   table: Key;
@@ -64,8 +63,7 @@ export const defineFactory = <
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
   Value extends InferInsert<Schema[Key]>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Traits extends Record<string, DefineFactoryResolver<Schema, Key, any>>,
+  Traits extends Record<string, DefineFactoryResolver<Schema, Key, Value>>,
 >({ schema, table, resolver, traits }: DefineFactoryOptions<Schema, Key, Value, Traits>): DrizzleFactory<Schema, Key, Value, Traits> => {
   const sequencer = createSequencer();
   const factory: DrizzleFactory<Schema, Key, Value, Traits> = (databaseOrFn) => {
