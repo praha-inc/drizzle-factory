@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.4.1
+
+### Patch Changes
+
+- [#170](https://github.com/praha-inc/drizzle-factory/pull/170) [`ad27636`](https://github.com/praha-inc/drizzle-factory/commit/ad276363b87da0010cc8792a77d9f9b79fb158f9) Thanks [@Karibash](https://github.com/Karibash)! - Add file extensions to import paths in TypeScript declaration files
+
 ## 1.4.0
 
 ### Minor Changes
