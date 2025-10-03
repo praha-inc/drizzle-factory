@@ -36,8 +36,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6
       drizzle-orm:
-        specifier: 0.44.5
-        version: 0.44.5
+        specifier: 0.44.6
+        version: 0.44.6
       eslint:
         specifier: 9.36.0
         version: 9.36.0(jiti@2.6.0)
@@ -1164,8 +1164,8 @@ packages:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
     engines: {node: '>=10'}
 
-  drizzle-orm@0.44.5:
-    resolution: {integrity: sha512-jBe37K7d8ZSKptdKfakQFdeljtu3P2Cbo7tJoJSVZADzIKOBo9IAJPOmMsH2bZl90bZgh8FQlD8BjxXA/zuBkQ==}
+  drizzle-orm@0.44.6:
+    resolution: {integrity: sha512-uy6uarrrEOc9K1u5/uhBFJbdF5VJ5xQ/Yzbecw3eAYOunv5FDeYkR2m8iitocdHBOHbvorviKOW5GVw0U1j4LQ==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -3294,7 +3294,7 @@ snapshots:
 
   dotenv@8.6.0: {}
 
-  drizzle-orm@0.44.5: {}
+  drizzle-orm@0.44.6: {}
 
   electron-to-chromium@1.5.203: {}
 
