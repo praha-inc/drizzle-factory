@@ -69,7 +69,7 @@
   "peerDependencies": {
     "drizzle-orm": "0.x"
   },
-  "packageManager": "pnpm@10.19.0",
+  "packageManager": "pnpm@10.20.0",
   "publishConfig": {
     "provenance": true
   }
