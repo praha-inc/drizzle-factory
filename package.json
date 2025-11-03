@@ -61,7 +61,7 @@
     "@rslib/core": "0.17.0",
     "@tsconfig/strictest": "2.0.7",
     "drizzle-orm": "0.44.7",
-    "eslint": "9.38.0",
+    "eslint": "9.39.0",
     "pkg-pr-new": "0.0.60",
     "typescript": "5.9.3",
     "vitest": "3.2.4"
