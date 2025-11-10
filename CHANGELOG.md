@@ -1,5 +1,11 @@
 # @praha/drizzle-factory
 
+## 1.4.2
+
+### Patch Changes
+
+- [#206](https://github.com/praha-inc/drizzle-factory/pull/206) [`2e25eef`](https://github.com/praha-inc/drizzle-factory/commit/2e25eef106245b6c587ff37cd8487f364bc646d8) Thanks [@Karibash](https://github.com/Karibash)! - Move the type definitions to index.ts
+
 ## 1.4.1
 
 ### Patch Changes
