@@ -1,13 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSequencer } from './helpers/create-sequencer';
 
-import type { DatabaseOrFn } from './types/database';
-import type { FixedArray } from './types/fixed-array';
-import type { InferInsert } from './types/infer-insert';
-import type { MaybePromise } from './types/maybe-promise';
-import type { Override, OverrideArray } from './types/override';
-import type { ResolveValue } from './types/resolve-value';
-import type { Column, Table } from 'drizzle-orm';
+import type { Column, InferInsertModel, QueryPromise, Table } from 'drizzle-orm';
+
+type MaybePromise<T> = T | Promise<T>;
+
+type _FixedArray<T, N extends number, R extends T[] = []> = R['length'] extends N ? R : _FixedArray<T, N, [...R, T]>;
+
+type FixedArray<T, N extends number> = number extends N ? T[] : _FixedArray<T, N>;
+
+type Override<T1, T2> = Omit<T1, keyof T2> & T2;
+
+type OverrideArray<T1, T2 extends unknown[]> = { [K in keyof T2]: Override<T1, T2[K]> };
+
+type ResolveValue<T> = {
+  [K in keyof T]: T[K] extends () => Promise<infer R> ? R : T[K];
+};
+
+type InferInsert<TTable extends Table> = Required<InferInsertModel<TTable>>;
+
+type InsertBuilder = {
+  values: (values: any) => QueryPromise<unknown>;
+  overridingSystemValue?: () => InsertBuilder;
+};
+
+export type Database<Schema extends Record<string, Table>> = {
+  _: {
+    fullSchema: Schema;
+  };
+  insert: (table: any) => InsertBuilder;
+};
+
+export type DatabaseOrFn<Schema extends Record<string, Table>> = Database<Schema> | (() => Database<Schema>);
 
 export type DefineFactoryResolver<
   Schema extends Record<string, Table>,
