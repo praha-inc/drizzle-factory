@@ -59,7 +59,7 @@
     "@praha/eslint-config-style": "3.0.9",
     "@praha/eslint-config-typescript": "3.0.9",
     "@rslib/core": "0.17.1",
-    "@tsconfig/strictest": "2.0.7",
+    "@tsconfig/strictest": "2.0.8",
     "drizzle-orm": "0.44.7",
     "eslint": "9.39.1",
     "pkg-pr-new": "0.0.60",
