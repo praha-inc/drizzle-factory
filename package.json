@@ -62,7 +62,7 @@
     "@tsconfig/strictest": "2.0.8",
     "drizzle-orm": "0.44.7",
     "eslint": "9.39.1",
-    "pkg-pr-new": "0.0.61",
+    "pkg-pr-new": "0.0.62",
     "typescript": "5.9.3",
     "vitest": "4.0.14"
   },
