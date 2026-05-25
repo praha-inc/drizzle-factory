@@ -42,8 +42,8 @@ importers:
         specifier: 9.39.4
         version: 9.39.4
       pkg-pr-new:
-        specifier: 0.0.74
-        version: 0.0.74
+        specifier: 0.0.75
+        version: 0.0.75
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -1587,8 +1587,8 @@ packages:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
 
-  pkg-pr-new@0.0.74:
-    resolution: {integrity: sha512-f2gScB4cjpVcMLeCMEhkrkt3KJCx3TgHTqaWZx54dUgvQcYASh+Hj+txMLjCkSN5ofHEGEmzi1gXK3lWZ2imTA==}
+  pkg-pr-new@0.0.75:
+    resolution: {integrity: sha512-u9mdErTewKSMsr+ceCt8VcNuNP0ro5AXiPXhUVApuEyqr2Zlvt+DdCFBcm+yGWN8mhOdZJ27meIDbnoZgfzpOw==}
     hasBin: true
 
   pluralize@8.0.0:
@@ -3313,7 +3313,7 @@ snapshots:
 
   pify@4.0.1: {}
 
-  pkg-pr-new@0.0.74: {}
+  pkg-pr-new@0.0.75: {}
 
   pluralize@8.0.0: {}
 
