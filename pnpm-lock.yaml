@@ -30,8 +30,8 @@ importers:
         specifier: 3.0.12
         version: 3.0.12(@praha/eslint-config-common@4.0.3(eslint@9.39.4))(@praha/eslint-config-javascript@3.0.11(@praha/eslint-config-common@4.0.3(eslint@9.39.4))(@typescript-eslint/eslint-plugin@8.62.1(@typescript-eslint/parser@8.62.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3))(@typescript-eslint/utils@8.62.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(@typescript-eslint/utils@8.62.1(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
       '@rslib/core':
-        specifier: 0.23.1
-        version: 0.23.1(typescript@5.9.3)
+        specifier: 0.23.2
+        version: 0.23.2(typescript@5.9.3)
       '@tsconfig/strictest':
         specifier: 2.0.8
         version: 2.0.8
@@ -450,8 +450,8 @@ packages:
       core-js:
         optional: true
 
-  '@rslib/core@0.23.1':
-    resolution: {integrity: sha512-kATUdbAwWL12Zrvuiv4M9JmwxG0pvH7zAJeQpPwMgGbs6uWPG4jA89DQEDyoBFmM/p4flBXN40x+42hbN+Bhbw==}
+  '@rslib/core@0.23.2':
+    resolution: {integrity: sha512-KxSp+/y0BJ1O4oKwxX4ydBY7/ZVeJCUpWAmQniCIct8mTxIQFPGO/ibKbKq2IxZYqRuRpM8g+Dtyq0VbEQf9HQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -1669,8 +1669,8 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
 
-  rsbuild-plugin-dts@0.23.1:
-    resolution: {integrity: sha512-RB3gbeT5dsmh1Q3uukKHSviYs7ul0PHtLa8WfkJSRu44E+VpRlYalAX1W7lqPt0dnKE+JhpCX7wuf98o1RJYjw==}
+  rsbuild-plugin-dts@0.23.2:
+    resolution: {integrity: sha512-Ve8WOSPyTBjxH40O/6fChJtflL7yqcUtt5zbF0eHDM4hIt35jqLocRlSdCxFJdQm0blTjl6+hkmPa/vNI06ArA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
       '@microsoft/api-extractor': ^7
@@ -2397,10 +2397,10 @@ snapshots:
     transitivePeerDependencies:
       - '@module-federation/runtime-tools'
 
-  '@rslib/core@0.23.1(typescript@5.9.3)':
+  '@rslib/core@0.23.2(typescript@5.9.3)':
     dependencies:
       '@rsbuild/core': 2.1.4
-      rsbuild-plugin-dts: 0.23.1(@rsbuild/core@2.1.4)(typescript@5.9.3)
+      rsbuild-plugin-dts: 0.23.2(@rsbuild/core@2.1.4)(typescript@5.9.3)
     optionalDependencies:
       typescript: 5.9.3
     transitivePeerDependencies:
@@ -3422,7 +3422,7 @@ snapshots:
       '@rolldown/binding-win32-arm64-msvc': 1.1.4
       '@rolldown/binding-win32-x64-msvc': 1.1.4
 
-  rsbuild-plugin-dts@0.23.1(@rsbuild/core@2.1.4)(typescript@5.9.3):
+  rsbuild-plugin-dts@0.23.2(@rsbuild/core@2.1.4)(typescript@5.9.3):
     dependencies:
       '@ast-grep/napi': 0.37.0
       '@rsbuild/core': 2.1.4
