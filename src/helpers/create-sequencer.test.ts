@@ -25,7 +25,7 @@ describe('createSequencer', () => {
     expect(sequencer.current()).toBe(4);
   });
 
-  it('should be independent', () => {
+  it('should be independent when reset', () => {
     const sequencer1 = createSequencer();
     const sequencer2 = createSequencer();
 
