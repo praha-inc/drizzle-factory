@@ -23,7 +23,7 @@
   "type": "module",
   "exports": {
     "require": {
-      "types": "./dist/cjs/index.d.ts",
+      "types": "./dist/cjs/index.d.cts",
       "default": "./dist/cjs/index.cjs"
     },
     "import": {
@@ -33,7 +33,7 @@
   },
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",
-  "types": "./dist/cjs/index.d.ts",
+  "types": "./dist/cjs/index.d.cts",
   "files": [
     "dist",
     "LICENSE",
@@ -54,7 +54,7 @@
     "@changesets/changelog-github": "0.7.0",
     "@changesets/cli": "2.31.1",
     "@praha/oxlint-config-standard": "1.0.3",
-    "@rslib/core": "0.23.2",
+    "@rslib/core": "1.0.6",
     "@tsconfig/strictest": "2.0.8",
     "drizzle-orm": "0.45.4",
     "oxlint": "1.93.0",
