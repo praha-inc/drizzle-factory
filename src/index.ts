@@ -24,10 +24,14 @@ type InsertBuilder = {
   overridingSystemValue?: () => InsertBuilder;
 };
 
+// drizzle-orm v0 exposes the schema passed to `drizzle()` as `fullSchema`, while v1 exposes only the relations.
+// The relations are optional so that a v1 database created without relations is also accepted.
+type DatabaseSchema<Schema extends Record<string, Table>>
+  = | { fullSchema: Schema }
+    | { relations: { [K in keyof Schema]?: { table: Schema[K] } } };
+
 export type Database<Schema extends Record<string, Table>> = {
-  _: {
-    fullSchema: Schema;
-  };
+  _: DatabaseSchema<Schema>;
   insert: (table: any) => InsertBuilder;
 };
 

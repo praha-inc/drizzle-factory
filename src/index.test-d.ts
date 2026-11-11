@@ -1,10 +1,14 @@
+import { defineRelations } from 'drizzle-orm';
+import { drizzle as drizzleMysql } from 'drizzle-orm/mysql-proxy';
 import { integer, pgTable } from 'drizzle-orm/pg-core';
+import { drizzle as drizzlePg } from 'drizzle-orm/pg-proxy';
 import { describe, expectTypeOf, it, vi } from 'vitest';
 
 import { defineFactory } from './index';
 
-import type { Database } from './types/database';
+import type { Database } from './index';
 import type { Table } from 'drizzle-orm';
+import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 
 describe('defineFactory', () => {
   // oxlint-disable-next-line @typescript-eslint/no-explicit-any
@@ -257,5 +261,49 @@ describe('defineFactory', () => {
         await factory(database).create({ id: null });
       });
     });
+  });
+});
+
+describe('Database', () => {
+  const schema = {
+    users: pgTable('users', {
+      id: integer().notNull(),
+    }),
+  } satisfies Record<string, Table>;
+
+  const otherSchema = {
+    posts: pgTable('posts', {
+      id: integer().notNull(),
+    }),
+  } satisfies Record<string, Table>;
+
+  const relations = defineRelations(schema);
+  const extendedRelations = defineRelations({ ...schema, ...otherSchema });
+  const otherRelations = defineRelations(otherSchema);
+
+  const query = () => Promise.resolve({ rows: [] });
+
+  it('should accept a database exposing the full schema', () => {
+    expectTypeOf<{ _: { fullSchema: typeof schema }; insert: Database<typeof schema>['insert'] }>()
+      .toExtend<Database<typeof schema>>();
+  });
+
+  it('should accept a database created without relations', () => {
+    expectTypeOf(drizzlePg(query)).toExtend<Database<typeof schema>>();
+    expectTypeOf(drizzleMysql(query)).toExtend<Database<typeof schema>>();
+    expectTypeOf<SqliteRemoteDatabase>().toExtend<Database<typeof schema>>();
+  });
+
+  it('should accept a database created with relations of the same schema', () => {
+    expectTypeOf(drizzlePg(query, { relations })).toExtend<Database<typeof schema>>();
+    expectTypeOf<SqliteRemoteDatabase<unknown, typeof relations>>().toExtend<Database<typeof schema>>();
+  });
+
+  it('should accept a database created with relations of an extended schema', () => {
+    expectTypeOf(drizzlePg(query, { relations: extendedRelations })).toExtend<Database<typeof schema>>();
+  });
+
+  it('should not accept a database created with relations of another schema', () => {
+    expectTypeOf(drizzlePg(query, { relations: otherRelations })).not.toExtend<Database<typeof schema>>();
   });
 });

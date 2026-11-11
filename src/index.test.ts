@@ -1,9 +1,11 @@
+import { defineRelations, sql } from 'drizzle-orm';
 import { pgTable, text, integer } from 'drizzle-orm/pg-core';
+import { drizzle } from 'drizzle-orm/pg-proxy';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { defineFactory, composeFactory } from './index';
 
-import type { Database } from './types/database';
+import type { Database } from './index';
 import type { Table } from 'drizzle-orm';
 
 describe('defineFactory', () => {
@@ -583,7 +585,7 @@ describe('defineFactory', () => {
       const schema = {
         users: pgTable('users', {
           id: integer().notNull(),
-          name: text().notNull().generatedAlwaysAs('name'),
+          name: text().notNull().generatedAlwaysAs(sql`'name'`),
         }),
       } satisfies Record<string, Table>;
 
@@ -709,6 +711,88 @@ describe('defineFactory', () => {
           name: 'admin-1',
         });
       });
+    });
+  });
+});
+
+describe('defineFactory with drizzle-orm database', () => {
+  const schema = {
+    users: pgTable('users', {
+      id: integer().notNull(),
+      name: text().notNull(),
+    }),
+    posts: pgTable('posts', {
+      id: integer().generatedAlwaysAsIdentity(),
+      title: text().notNull(),
+    }),
+  } satisfies Record<string, Table>;
+
+  const relations = defineRelations(schema);
+
+  const query = vi.fn((_sql: string, _parameters: unknown[]) => Promise.resolve({ rows: [] }));
+
+  const usersFactory = defineFactory({
+    schema,
+    table: 'users',
+    resolver: ({ sequence }) => ({
+      id: sequence,
+      name: `name-${sequence}`,
+    }),
+  });
+
+  const postsFactory = defineFactory({
+    schema,
+    table: 'posts',
+    resolver: ({ sequence }) => ({
+      id: sequence,
+      title: `title-${sequence}`,
+    }),
+  });
+
+  beforeEach(() => {
+    query.mockClear();
+    usersFactory.resetSequence();
+    postsFactory.resetSequence();
+  });
+
+  describe('when database is created without relations', () => {
+    const database = drizzle(query);
+
+    it('should insert a record', async () => {
+      const user = await usersFactory(database).create();
+
+      expect(user).toEqual({ id: 1, name: 'name-1' });
+      expect(query).toHaveBeenCalledExactlyOnceWith(
+        'insert into "users" ("id", "name") values ($1, $2)',
+        [1, 'name-1'],
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('when database is created with relations', () => {
+    const database = drizzle(query, { relations });
+
+    it('should insert a record', async () => {
+      const user = await usersFactory(database).create();
+
+      expect(user).toEqual({ id: 1, name: 'name-1' });
+      expect(query).toHaveBeenCalledExactlyOnceWith(
+        'insert into "users" ("id", "name") values ($1, $2)',
+        [1, 'name-1'],
+        expect.anything(),
+      );
+    });
+
+    it('should override system value when table has generated identity columns', async () => {
+      const post = await postsFactory(database).create();
+
+      expect(post).toEqual({ id: 1, title: 'title-1' });
+      expect(query).toHaveBeenCalledExactlyOnceWith(
+        'insert into "posts" ("id", "title") overriding system value values ($1, $2)',
+        [1, 'title-1'],
+        expect.anything(),
+      );
     });
   });
 });
