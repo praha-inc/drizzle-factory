@@ -19,7 +19,7 @@ describe('defineFactory', () => {
     }),
   } satisfies Record<string, Table>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   const values = vi.fn<() => any>(() => Promise.resolve());
   const database: Database<typeof schema> = {
     _: {
@@ -521,7 +521,7 @@ describe('defineFactory', () => {
         }),
       } satisfies Record<string, Table>;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       const values = vi.fn<() => any>(() => Promise.resolve());
       const overridingSystemValue = vi.fn(() => ({ values }));
       const insert = vi.fn(() => ({ overridingSystemValue, values }));
@@ -587,7 +587,7 @@ describe('defineFactory', () => {
         }),
       } satisfies Record<string, Table>;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       const values = vi.fn<() => any>(() => Promise.resolve());
       const overridingSystemValue = vi.fn(() => ({ values }));
       const insert = vi.fn(() => ({ overridingSystemValue, values }));
@@ -653,7 +653,7 @@ describe('defineFactory', () => {
         }),
       } satisfies Record<string, Table>;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       const values = vi.fn<() => any>(() => Promise.resolve());
       const overridingSystemValue = vi.fn(() => ({ values }));
       const insert = vi.fn(() => ({ overridingSystemValue, values }));
@@ -726,7 +726,7 @@ describe('composeFactory', () => {
     }),
   } satisfies Record<string, Table>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   const values = vi.fn<() => any>(() => Promise.resolve());
   const database: Database<typeof schema> = {
     _: {

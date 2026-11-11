@@ -7,7 +7,7 @@ import type { Database } from './types/database';
 import type { Table } from 'drizzle-orm';
 
 describe('defineFactory', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   const values = vi.fn<() => any>(() => Promise.resolve());
 
   describe('nullable', () => {
@@ -162,11 +162,13 @@ describe('defineFactory', () => {
         expectTypeOf(user).toMatchObjectType<{ id: number }>();
       });
 
+      // oxlint-disable-next-line vitest/expect-expect
       it('should raise a type error when override is undefined', async () => {
         // @ts-expect-error
         await factory(database).create({ id: undefined });
       });
 
+      // oxlint-disable-next-line vitest/expect-expect
       it('should raise a type error when override is null', async () => {
         // @ts-expect-error
         await factory(database).create({ id: null });
@@ -215,6 +217,7 @@ describe('defineFactory', () => {
         expectTypeOf(user).toMatchObjectType<{ id: number }>();
       });
 
+      // oxlint-disable-next-line vitest/expect-expect
       it('should raise a type error when override is null', async () => {
         // @ts-expect-error
         await factory(database).create({ id: null });
@@ -248,6 +251,7 @@ describe('defineFactory', () => {
         expectTypeOf(user).toMatchObjectType<{ id: undefined }>();
       });
 
+      // oxlint-disable-next-line vitest/expect-expect
       it('should raise a type error when override is null', async () => {
         // @ts-expect-error
         await factory(database).create({ id: null });

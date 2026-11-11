@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 import { createSequencer } from './helpers/create-sequencer';
 
 import type { Column, InferInsertModel, QueryPromise, Table } from 'drizzle-orm';
@@ -124,7 +124,7 @@ export const defineFactory = <
     ): Promise<Value> => {
       const built = resolver({
         sequence: sequencer(),
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
         use: (factory) => factory(databaseOrFn),
       });
@@ -136,7 +136,7 @@ export const defineFactory = <
             Object.entries(built)
               .filter(([key]) => !Object.keys(values).includes(key))
               .map(async ([key, value]) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
                 return [key, typeof value === 'function' ? await value() : value];
               }),
           ),
@@ -172,7 +172,7 @@ export const defineFactory = <
         if (Array.isArray(value)) {
           const results: Array<InferInsert<Schema[Key]>> = [];
           for (const item of value) {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-argument
             results.push(await insert(resolver, item));
           }
           return results;
@@ -189,7 +189,7 @@ export const defineFactory = <
       return async () => {
         const seed = await seedResolver({
           sequence: sequencer.current(),
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // oxlint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-expect-error
           use: (factory) => factory(databaseOrFn),
         });
@@ -198,9 +198,9 @@ export const defineFactory = <
     };
 
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // oxlint-disable-next-line @typescript-eslint/no-unsafe-assignment
       create: defineCreateFunction(resolver) as any,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // oxlint-disable-next-line @typescript-eslint/no-unsafe-assignment
       traits: Object.fromEntries(
         Object.entries(traits || {}).map(([key, traitResolver]) => [
           key,
@@ -209,7 +209,7 @@ export const defineFactory = <
           },
         ]),
       ) as any,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      // oxlint-disable-next-line @typescript-eslint/no-unsafe-assignment
       seeds: Object.fromEntries(
         Object.entries(seeds || {}).map(([key, seedResolver]) => [
           key,
