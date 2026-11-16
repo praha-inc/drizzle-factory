@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { defineFactory, composeFactory } from './index';
 
-import type { Database } from './types/database';
+import type { Database } from './index';
 import type { Table } from 'drizzle-orm';
 
 describe('defineFactory', () => {
