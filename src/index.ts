@@ -122,6 +122,20 @@ export const defineFactory = <
 }: DefineFactoryOptions<Schema, Key, Resolver, Traits, Seeds>): DrizzleFactory<Schema, Key, Resolver, Traits, Seeds> => {
   const sequencer = createSequencer();
   const factory: DrizzleFactory<Schema, Key, Resolver, Traits, Seeds> = (databaseOrFn) => {
+    const columns = Object.entries(schema[table]!) as Array<[string, Column]>;
+
+    // `OVERRIDING SYSTEM VALUE` only applies to identity columns.
+    const hasSystemValueColumn = columns.some(([, column]) => column.generatedIdentity?.type === 'always');
+
+    // Columns generated from an expression never accept a value, and drizzle-orm v1 stops omitting them from the
+    // insert once the system value is overridden, so a value for them is neither resolved nor inserted.
+    // The condition mirrors the one drizzle-orm uses to omit a column.
+    const generatedKeys = new Set(
+      columns
+        .filter(([, column]) => column.generated !== undefined && column.generated.type !== 'byDefault')
+        .map(([key]) => key),
+    );
+
     const insert = async <Value extends InferInsert<Schema[Key]>>(
       resolver: DefineFactoryResolver<Schema, Key>,
       values: Partial<InferInsert<Schema[Key]>>,
@@ -133,12 +147,15 @@ export const defineFactory = <
         use: (factory) => factory(databaseOrFn),
       });
 
+      const specifiedValues = Object.fromEntries(
+        Object.entries(values).filter(([key]) => !generatedKeys.has(key)),
+      );
       const insertValues = {
-        ...values,
+        ...specifiedValues,
         ...Object.fromEntries(
           await Promise.all(
             Object.entries(built)
-              .filter(([key]) => !Object.keys(values).includes(key))
+              .filter(([key]) => !generatedKeys.has(key) && !Object.hasOwn(specifiedValues, key))
               .map(async ([key, value]) => {
                 // oxlint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
                 return [key, typeof value === 'function' ? await value() : value];
@@ -146,10 +163,6 @@ export const defineFactory = <
           ),
         ),
       } as Value;
-
-      const hasSystemValueColumn = Object.values(schema[table]!).some((column: Column) => {
-        return column.generated?.type === 'always' || column.generatedIdentity?.type === 'always';
-      });
 
       const database = typeof databaseOrFn === 'function' ? databaseOrFn() : databaseOrFn;
       const builder = database.insert(schema[table]);
