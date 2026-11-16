@@ -406,6 +406,7 @@ describe('defineFactory', () => {
         const factory = defineFactory({
           schema,
           table: 'identityGenerated',
+          // @ts-expect-error The types reject a value for a generated column, and one that gets past them must not be inserted.
           resolver: ({ sequence }) => ({ id: sequence, double: resolveDouble }),
         });
 
@@ -856,6 +857,7 @@ describe('defineFactory', () => {
           const factory = defineFactory({
             schema,
             table: 'identityGenerated',
+            // @ts-expect-error The types reject a value for a generated column, and one that gets past them must not be inserted.
             resolver: ({ sequence }) => ({ id: sequence, double: resolveDouble }),
           });
 
