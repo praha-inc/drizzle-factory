@@ -3,7 +3,7 @@ import { describe, expectTypeOf, it, vi } from 'vitest';
 
 import { defineFactory } from './index';
 
-import type { Database } from './types/database';
+import type { Database } from './index';
 import type { Table } from 'drizzle-orm';
 
 describe('defineFactory', () => {
