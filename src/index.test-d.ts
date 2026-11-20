@@ -1,4 +1,4 @@
-import { defineRelations } from 'drizzle-orm';
+import { defineRelations, sql } from 'drizzle-orm';
 import { drizzle as drizzleMysql } from 'drizzle-orm/mysql-proxy';
 import { integer, pgTable, text } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/pg-proxy';
@@ -7,6 +7,7 @@ import { describe, expectTypeOf, it, vi } from 'vitest';
 import { defineFactory } from './index';
 
 import type { Table } from 'drizzle-orm';
+import type { PgTable } from 'drizzle-orm/pg-core';
 import type { SqliteRemoteDatabase } from 'drizzle-orm/sqlite-proxy';
 
 describe('defineFactory', () => {
@@ -196,6 +197,8 @@ describe('defineFactory', () => {
           nullable: integer(),
           required: integer().notNull(),
           defaulted: integer().notNull().default(0),
+          identity: integer().generatedAlwaysAsIdentity(),
+          expression: integer().generatedAlwaysAs(sql`required * 2`),
         }),
       } satisfies Record<string, Table>;
 
@@ -264,6 +267,159 @@ describe('defineFactory', () => {
         expectTypeOf(await factory(database).create({ defaulted: undefined })).toHaveProperty('defaulted').toEqualTypeOf<undefined>();
         // @ts-expect-error
         await factory(database).create({ defaulted: null });
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should accept any key when the columns of the table are not known', async () => {
+        const schema: { records: PgTable } = {
+          records: pgTable('records', { id: integer().notNull() }),
+        };
+
+        const factory = defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ id: 1, name: 'name' }),
+          traits: {
+            named: () => ({ id: 1, name: 'trait' }),
+          },
+        });
+
+        await factory(database).create({ id: 2 });
+        await factory(database).create([{ id: 2 }]);
+        await factory(database).traits.named.create({ id: 2 });
+      });
+
+      it('should accept values that are not literals', async () => {
+        const row = { required: 1, nullable: null };
+        const rows = [row, { required: 2 }];
+
+        expectTypeOf(await factory(database).create(row)).toHaveProperty('nullable').toEqualTypeOf<null>();
+        expectTypeOf(await factory(database).create(rows)).toBeArray();
+        expectTypeOf(await factory(database).create<2>([row, row])).toHaveProperty('length').toEqualTypeOf<2>();
+        expectTypeOf(await factory(database).create<number, false>(rows)).toBeArray();
+      });
+
+      it('should accept a value for a generated always as identity column', async () => {
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: ({ sequence }) => ({ nullable: 1, required: 1, defaulted: 1, identity: sequence }),
+        });
+
+        expectTypeOf(await factory(database).create({ identity: 1 })).toHaveProperty('identity').toEqualTypeOf<number>();
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should not accept a value for a generated always column', async () => {
+        defineFactory({
+          schema,
+          table: 'records',
+          // @ts-expect-error
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1, expression: 2 }),
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          traits: {
+            // @ts-expect-error
+            doubled: () => ({ nullable: 1, required: 1, defaulted: 1, expression: 2 }),
+          },
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          seeds: {
+            // @ts-expect-error
+            single: () => ({ required: 1, expression: 2 }),
+            // @ts-expect-error
+            either: ({ sequence }) => (sequence > 1 ? [{ required: 1, expression: 2 }] : { required: 1 }),
+            multiple: () => [
+              { required: 1 },
+              // @ts-expect-error
+              { required: 1, expression: 2 },
+            ],
+          },
+        });
+
+        // @ts-expect-error
+        await factory(database).create({ required: 1, expression: 2 });
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, { required: 1, expression: 2 }]);
+
+        const generatedRow = { required: 1, expression: 2 };
+        // @ts-expect-error
+        await factory(database).create([generatedRow]);
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, generatedRow]);
+        const generatedRows = [generatedRow];
+        // @ts-expect-error
+        await factory(database).create(generatedRows);
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should report only the seed when the seed has a value for a generated always column', () => {
+        const schema = {
+          records: pgTable('records', {
+            identity: integer().generatedAlwaysAsIdentity(),
+            expression: integer().generatedAlwaysAs(sql`identity * 2`),
+          }),
+        } satisfies Record<string, Table>;
+
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: ({ sequence }) => ({ identity: sequence }),
+          seeds: {
+            // @ts-expect-error
+            single: () => ({ identity: 1, expression: 2 }),
+          },
+        });
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should not accept a key that is not a column', async () => {
+        defineFactory({
+          schema,
+          table: 'records',
+          // @ts-expect-error
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1, unknown: 2 }),
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          traits: {
+            // @ts-expect-error
+            extra: () => ({ nullable: 1, required: 1, defaulted: 1, unknown: 2 }),
+          },
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          seeds: {
+            // @ts-expect-error
+            single: () => ({ required: 1, unknown: 2 }),
+            // @ts-expect-error
+            multiple: () => Promise.resolve([{ required: 1 }, { required: 1, unknown: 2 }]),
+          },
+        });
+
+        // @ts-expect-error
+        await factory(database).create({ required: 1, unknown: 2 });
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, { required: 1, unknown: 2 }]);
+
+        const unknownRow = { required: 1, unknown: 2 };
+        // @ts-expect-error
+        await factory(database).create([unknownRow]);
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, unknownRow]);
+        const unknownRows = [unknownRow];
+        // @ts-expect-error
+        await factory(database).create(unknownRows);
       });
     });
 
@@ -482,6 +638,8 @@ describe('defineFactory', () => {
           nullable: integer(),
           required: integer().notNull(),
           defaulted: integer().notNull().default(0),
+          identity: integer().generatedAlwaysAsIdentity(),
+          expression: integer().generatedAlwaysAs(sql`required * 2`),
         }),
       } satisfies Record<string, Table>;
 
@@ -550,6 +708,159 @@ describe('defineFactory', () => {
         expectTypeOf(await factory(database).create({ defaulted: undefined })).toHaveProperty('defaulted').toEqualTypeOf<undefined>();
         // @ts-expect-error
         await factory(database).create({ defaulted: null });
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should accept any key when the columns of the table are not known', async () => {
+        const schema: { records: PgTable } = {
+          records: pgTable('records', { id: integer().notNull() }),
+        };
+
+        const factory = defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ id: 1, name: 'name' }),
+          traits: {
+            named: () => ({ id: 1, name: 'trait' }),
+          },
+        });
+
+        await factory(database).create({ id: 2 });
+        await factory(database).create([{ id: 2 }]);
+        await factory(database).traits.named.create({ id: 2 });
+      });
+
+      it('should accept values that are not literals', async () => {
+        const row = { required: 1, nullable: null };
+        const rows = [row, { required: 2 }];
+
+        expectTypeOf(await factory(database).create(row)).toHaveProperty('nullable').toEqualTypeOf<null>();
+        expectTypeOf(await factory(database).create(rows)).toBeArray();
+        expectTypeOf(await factory(database).create<2>([row, row])).toHaveProperty('length').toEqualTypeOf<2>();
+        expectTypeOf(await factory(database).create<number, false>(rows)).toBeArray();
+      });
+
+      it('should accept a value for a generated always as identity column', async () => {
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: ({ sequence }) => ({ nullable: 1, required: 1, defaulted: 1, identity: sequence }),
+        });
+
+        expectTypeOf(await factory(database).create({ identity: 1 })).toHaveProperty('identity').toEqualTypeOf<number>();
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should not accept a value for a generated always column', async () => {
+        defineFactory({
+          schema,
+          table: 'records',
+          // @ts-expect-error
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1, expression: 2 }),
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          traits: {
+            // @ts-expect-error
+            doubled: () => ({ nullable: 1, required: 1, defaulted: 1, expression: 2 }),
+          },
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          seeds: {
+            // @ts-expect-error
+            single: () => ({ required: 1, expression: 2 }),
+            // @ts-expect-error
+            either: ({ sequence }) => (sequence > 1 ? [{ required: 1, expression: 2 }] : { required: 1 }),
+            multiple: () => [
+              { required: 1 },
+              // @ts-expect-error
+              { required: 1, expression: 2 },
+            ],
+          },
+        });
+
+        // @ts-expect-error
+        await factory(database).create({ required: 1, expression: 2 });
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, { required: 1, expression: 2 }]);
+
+        const generatedRow = { required: 1, expression: 2 };
+        // @ts-expect-error
+        await factory(database).create([generatedRow]);
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, generatedRow]);
+        const generatedRows = [generatedRow];
+        // @ts-expect-error
+        await factory(database).create(generatedRows);
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should report only the seed when the seed has a value for a generated always column', () => {
+        const schema = {
+          records: pgTable('records', {
+            identity: integer().generatedAlwaysAsIdentity(),
+            expression: integer().generatedAlwaysAs(sql`identity * 2`),
+          }),
+        } satisfies Record<string, Table>;
+
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: ({ sequence }) => ({ identity: sequence }),
+          seeds: {
+            // @ts-expect-error
+            single: () => ({ identity: 1, expression: 2 }),
+          },
+        });
+      });
+
+      // oxlint-disable-next-line vitest/expect-expect
+      it('should not accept a key that is not a column', async () => {
+        defineFactory({
+          schema,
+          table: 'records',
+          // @ts-expect-error
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1, unknown: 2 }),
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          traits: {
+            // @ts-expect-error
+            extra: () => ({ nullable: 1, required: 1, defaulted: 1, unknown: 2 }),
+          },
+        });
+        defineFactory({
+          schema,
+          table: 'records',
+          resolver: () => ({ nullable: 1, required: 1, defaulted: 1 }),
+          seeds: {
+            // @ts-expect-error
+            single: () => ({ required: 1, unknown: 2 }),
+            // @ts-expect-error
+            multiple: () => Promise.resolve([{ required: 1 }, { required: 1, unknown: 2 }]),
+          },
+        });
+
+        // @ts-expect-error
+        await factory(database).create({ required: 1, unknown: 2 });
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, { required: 1, unknown: 2 }]);
+
+        const unknownRow = { required: 1, unknown: 2 };
+        // @ts-expect-error
+        await factory(database).create([unknownRow]);
+        // @ts-expect-error
+        await factory(database).create([{ required: 1 }, unknownRow]);
+        const unknownRows = [unknownRow];
+        // @ts-expect-error
+        await factory(database).create(unknownRows);
       });
     });
 

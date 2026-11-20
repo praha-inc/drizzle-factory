@@ -17,7 +17,56 @@ type ResolveValue<T> = {
   [K in keyof T]: T[K] extends () => Promise<infer R> ? R : T[K];
 };
 
-type InferInsert<TTable extends Table> = Required<InferInsertModel<TTable>>;
+// A generated always as identity column is left out of the insert model, but the factory overrides the system value,
+// so a value for it is inserted. A column generated from an expression never accepts a value and stays left out.
+type IdentityKeys<TTable extends Table> = {
+  [K in keyof TTable['_']['columns'] & string]: TTable['_']['columns'][K]['_']['identity'] extends 'always' ? K : never;
+}[keyof TTable['_']['columns'] & string];
+
+// The keys of the columns a factory inserts a value into: every column that is not generated from an expression.
+// They are read from the columns, not from the insert model, whose keys TypeScript 5 does not always resolve.
+// A column whose type does not say whether it is generated, as in a table typed as `PgTable`, counts as insertable.
+type InsertableKeys<TTable extends Table> = {
+  [K in keyof TTable['_']['columns'] & string]: undefined extends TTable['_']['columns'][K]['_']['generated'] ? K : never;
+}[keyof TTable['_']['columns'] & string];
+
+// The values a factory inserts.
+type InferInsert<TTable extends Table> = Required<InferInsertModel<TTable>> & {
+  [K in IdentityKeys<TTable>]?: TTable['_']['columns'][K]['_']['data'];
+};
+
+type ResolverParameters<Schema extends Record<string, Table>> = {
+  sequence: number;
+  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
+};
+
+// A resolver is inferred as a type parameter, so the object it returns is not checked for excess properties.
+// Typing every key that is not an insertable column as `never` turns a value that would never be inserted,
+// such as one for a column generated from an expression or for a key that is not a column, into a type error.
+type ResolvedValue<Resolver extends (parameters: never) => unknown>
+  = Awaited<ReturnType<Resolver>> extends infer Value
+    ? Value extends Array<infer Element> ? Element : Value
+    : never;
+
+// A value without known keys, such as `any`, has no key to report.
+type ExtraKeys<Value, Allowed> = Value extends unknown
+  ? string extends keyof Value ? never : Exclude<keyof Value, Allowed>
+  : never;
+
+type StrictValue<
+  Schema extends Record<string, Table>,
+  Key extends keyof Schema,
+  Resolver extends (parameters: never) => unknown,
+> = { [K in InsertableKeys<Schema[Key]>]?: unknown }
+  & { [K in ExtraKeys<ResolvedValue<Resolver>, InsertableKeys<Schema[Key]>>]?: never };
+
+type Strict<
+  Schema extends Record<string, Table>,
+  Key extends keyof Schema,
+  Resolver extends (parameters: never) => unknown,
+> = (parameters: ResolverParameters<Schema>) => MaybePromise<
+  StrictValue<Schema, Key, Resolver> | Array<StrictValue<Schema, Key, Resolver>>
+>;
 
 type InsertBuilder = {
   values: (values: any) => QueryPromise<unknown>;
@@ -40,26 +89,31 @@ export type DatabaseOrFn<Schema extends Record<string, Table>> = Database<Schema
 export type DefineFactoryResolver<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
-> = (parameters: {
-  sequence: number;
-  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
-}) => { [K in keyof InferInsert<Schema[Key]>]: InferInsert<Schema[Key]>[K] | (() => MaybePromise<InferInsert<Schema[Key]>[K]>) };
+> = (parameters: ResolverParameters<Schema>) => { [K in keyof InferInsert<Schema[Key]>]: InferInsert<Schema[Key]>[K] | (() => MaybePromise<InferInsert<Schema[Key]>[K]>) };
 
 export type DefineFactorySeedResolver<
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
-> = (parameters: {
-  sequence: number;
-  use: <Factory extends DrizzleFactory<Schema, any, any, any, any>>(factory: Factory) => ReturnType<Factory>;
-}) => MaybePromise<Partial<InferInsert<Schema[Key]>> | Partial<InferInsert<Schema[Key]>>[]>;
+> = (parameters: ResolverParameters<Schema>) => MaybePromise<Partial<InferInsert<Schema[Key]>> | Partial<InferInsert<Schema[Key]>>[]>;
+
+// A value is inferred as a type parameter, so a key that is not an insertable column passes the excess property check
+// as soon as the value has another key that is one. Typing every such key as `never` makes it a type error.
+// A table typed without its columns has no known key to check a value against.
+type StrictInput<Input, Insert> = [keyof Insert] extends [never]
+  ? unknown
+  : Partial<Record<ExtraKeys<Input, keyof Insert>, never>>;
 
 export type DrizzleFactoryCreateFunction<Insert, Base> = {
   (): Promise<Base>;
   <Length extends number>(length: Length): Promise<FixedArray<Base, Length>>;
-  <Input extends Partial<Insert>>(value: Input): Promise<Override<Base, Input>>;
-  <const Values extends Partial<Insert>[]>(values: Values): Promise<OverrideArray<Base, Values>>;
-  <Length extends number, Strict extends boolean = true>(
-    values: Strict extends true ? FixedArray<Partial<Insert>, Length> : Array<Partial<Insert>>
+  <Input extends Partial<Insert> & StrictInput<Input, Insert>>(value: Input): Promise<Override<Base, Input>>;
+  <const Values extends Array<Partial<Insert> & StrictInput<Values[number], Insert>>>(
+    values: Values
+  ): Promise<OverrideArray<Base, Values>>;
+  <Length extends number, Strict extends boolean = true, Value extends Partial<Insert> = Partial<Insert>>(
+    values: Strict extends true
+      ? FixedArray<Value & StrictInput<Value, Insert>, Length>
+      : Array<Value & StrictInput<Value, Insert>>
   ): Promise<FixedArray<Base, Length>>;
 };
 
@@ -110,9 +164,9 @@ export type DefineFactoryOptions<
 export const defineFactory = <
   Schema extends Record<string, Table>,
   Key extends keyof Schema,
-  Resolver extends DefineFactoryResolver<Schema, Key>,
-  Traits extends Record<string, DefineFactoryResolver<Schema, Key>>,
-  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key>>,
+  Resolver extends DefineFactoryResolver<Schema, Key> & Strict<Schema, Key, Resolver>,
+  Traits extends Record<string, DefineFactoryResolver<Schema, Key>> & { [K in keyof Traits]: Strict<Schema, Key, Traits[K]> },
+  Seeds extends Record<string, DefineFactorySeedResolver<Schema, Key>> & { [K in keyof Seeds]: Strict<Schema, Key, Seeds[K]> },
 >({
   schema,
   table,
@@ -122,6 +176,20 @@ export const defineFactory = <
 }: DefineFactoryOptions<Schema, Key, Resolver, Traits, Seeds>): DrizzleFactory<Schema, Key, Resolver, Traits, Seeds> => {
   const sequencer = createSequencer();
   const factory: DrizzleFactory<Schema, Key, Resolver, Traits, Seeds> = (databaseOrFn) => {
+    const columns = Object.entries(schema[table]!) as Array<[string, Column]>;
+
+    // `OVERRIDING SYSTEM VALUE` only applies to identity columns.
+    const hasSystemValueColumn = columns.some(([, column]) => column.generatedIdentity?.type === 'always');
+
+    // Columns generated from an expression never accept a value, and drizzle-orm v1 stops omitting them from the
+    // insert once the system value is overridden. The types reject a value for them, and one that gets past the
+    // types is neither resolved nor inserted. The condition mirrors the one drizzle-orm uses to omit a column.
+    const generatedKeys = new Set(
+      columns
+        .filter(([, column]) => column.generated !== undefined && column.generated.type !== 'byDefault')
+        .map(([key]) => key),
+    );
+
     const insert = async <Value extends InferInsert<Schema[Key]>>(
       resolver: DefineFactoryResolver<Schema, Key>,
       values: Partial<InferInsert<Schema[Key]>>,
@@ -133,12 +201,15 @@ export const defineFactory = <
         use: (factory) => factory(databaseOrFn),
       });
 
+      const specifiedValues = Object.fromEntries(
+        Object.entries(values).filter(([key]) => !generatedKeys.has(key)),
+      );
       const insertValues = {
-        ...values,
+        ...specifiedValues,
         ...Object.fromEntries(
           await Promise.all(
             Object.entries(built)
-              .filter(([key]) => !Object.keys(values).includes(key))
+              .filter(([key]) => !generatedKeys.has(key) && !Object.hasOwn(specifiedValues, key))
               .map(async ([key, value]) => {
                 // oxlint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-call
                 return [key, typeof value === 'function' ? await value() : value];
@@ -146,10 +217,6 @@ export const defineFactory = <
           ),
         ),
       } as Value;
-
-      const hasSystemValueColumn = Object.values(schema[table]!).some((column: Column) => {
-        return column.generated?.type === 'always' || column.generatedIdentity?.type === 'always';
-      });
 
       const database = typeof databaseOrFn === 'function' ? databaseOrFn() : databaseOrFn;
       const builder = database.insert(schema[table]);
