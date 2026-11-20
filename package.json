@@ -56,7 +56,7 @@
     "@praha/oxlint-config-standard": "1.0.3",
     "@rslib/core": "1.0.7",
     "@tsconfig/strictest": "2.0.9",
-    "drizzle-orm": "1.0.0-rc.5",
+    "drizzle-orm": "1.0.0-rc.5-ab785fc",
     "oxlint": "1.94.0",
     "oxlint-tsgolint": "7.0.2007",
     "pkg-pr-new": "0.0.94",
