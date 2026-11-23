@@ -61,7 +61,7 @@
     "oxlint-tsgolint": "7.0.2007",
     "pkg-pr-new": "0.0.94",
     "typescript": "7.0.2",
-    "vitest": "5.1.0"
+    "vitest": "5.1.1"
   },
   "peerDependencies": {
     "drizzle-orm": "0.x || ^1.0.0-rc.1"
