@@ -57,7 +57,7 @@
     "@rslib/core": "1.0.7",
     "@tsconfig/strictest": "2.0.9",
     "drizzle-orm": "1.0.0-rc.5",
-    "oxlint": "1.94.0",
+    "oxlint": "1.95.0",
     "oxlint-tsgolint": "7.0.2008",
     "pkg-pr-new": "0.0.94",
     "typescript": "7.0.2",
