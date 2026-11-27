@@ -1,5 +1,15 @@
 # @praha/drizzle-factory
 
+## 1.5.0
+
+### Minor Changes
+
+- [#413](https://github.com/praha-inc/drizzle-factory/pull/413) [`4d8e261`](https://github.com/praha-inc/drizzle-factory/commit/4d8e261c133e0ba97c46f893b060aa0d7cb770ae) Thanks [@Karibash](https://github.com/Karibash)! - Support Drizzle ORM v1 RC
+
+### Patch Changes
+
+- [#411](https://github.com/praha-inc/drizzle-factory/pull/411) [`8b1145e`](https://github.com/praha-inc/drizzle-factory/commit/8b1145e530d87af585d31fa8858a443b622d8fad) Thanks [@Karibash](https://github.com/Karibash)! - Remove unused type definition files
+
 ## 1.4.2
 
 ### Patch Changes
